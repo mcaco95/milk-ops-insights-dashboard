@@ -5,7 +5,7 @@ import { PickupsWidget } from '../components/dashboard/PickupsWidget';
 import { RoutesWidget } from '../components/dashboard/RoutesWidget';
 import { Tank, CustomerSummary, RouteRecord } from '../types/dashboard';
 
-// Mock API functions
+// Mock API functions with enhanced data
 const fetchTanks = async (): Promise<Tank[]> => {
   return [
     {
@@ -14,7 +14,8 @@ const fetchTanks = async (): Promise<Tank[]> => {
       currentVolume: 17340,
       predictedVolume: 100000,
       superLoadsAvailable: 2.27,
-      lastHit: "2025-05-30T09:58:00Z"
+      lastHit: "2025-05-30T09:58:00Z",
+      eta: "9:15"
     },
     {
       id: 2,
@@ -22,7 +23,8 @@ const fetchTanks = async (): Promise<Tank[]> => {
       currentVolume: 45280,
       predictedVolume: 100000,
       superLoadsAvailable: 1.83,
-      lastHit: "2025-05-30T08:15:00Z"
+      lastHit: "2025-05-30T08:15:00Z",
+      eta: "7:28"
     },
     {
       id: 3,
@@ -113,26 +115,28 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6 shadow-lg"></div>
+          <p className="text-slate-700 font-medium text-lg">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="container mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Milk Ops Dashboard</h1>
-          <p className="text-gray-600">Real-time operations monitoring and analytics</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent mb-3 tracking-tight">
+            Milk Ops Dashboard
+          </h1>
+          <p className="text-slate-600 text-lg font-medium">Real-time operations monitoring and analytics</p>
         </div>
 
         {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Volume Widget - Top Left */}
           <div className="lg:col-span-6">
             <VolumeWidget tanks={tanks} />

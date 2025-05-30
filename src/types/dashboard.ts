@@ -6,6 +6,7 @@ export type Tank = {
   predictedVolume: number;
   superLoadsAvailable: number;
   lastHit: string;
+  eta?: string; // ETA for active routes to this tank
 };
 
 export type CustomerSummary = {
