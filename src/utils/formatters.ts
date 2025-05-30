@@ -25,3 +25,26 @@ export const formatTime = (dateString: string): string => {
     hour12: true
   });
 };
+
+export const formatCompactDateTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  
+  if (isToday) {
+    return date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false
+    });
+  } else {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const time = date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false
+    });
+    return `${month}/${day} ${time}`;
+  }
+};
