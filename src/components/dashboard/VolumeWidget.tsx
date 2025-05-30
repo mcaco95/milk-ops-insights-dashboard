@@ -54,11 +54,26 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
           <h3 className="text-sm font-semibold text-slate-800 mb-2">{barn.name}</h3>
         )}
         
-        <div className={`${isMobile ? 'h-32' : 'h-64'} ${isMobile ? 'mb-2' : 'mb-6'} relative`}>
+        {/* Time to Full Labels - Above Chart */}
+        <div className={`grid grid-cols-${chartData.length} gap-1 ${isMobile ? 'mb-1' : 'mb-2'}`}>
+          {chartData.map((entry, index) => (
+            <div key={`time-label-${index}`} className="text-center">
+              {entry.timeToFull && (
+                <span className={`inline-block bg-orange-500 text-white rounded-full font-medium ${
+                  isMobile ? 'text-xs px-1.5 py-0.5' : 'text-xs px-2 py-1'
+                } shadow-md`}>
+                  {isMobile ? entry.timeToFull : `Full: ${entry.timeToFull}`}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+        
+        <div className={`${isMobile ? 'h-32' : 'h-64'} ${isMobile ? 'mb-2' : 'mb-6'}`}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
               data={chartData} 
-              margin={isMobile ? { top: 25, right: 10, left: 5, bottom: 5 } : { top: 40, right: 30, left: 20, bottom: 5 }}
+              margin={isMobile ? { top: 5, right: 10, left: 5, bottom: 5 } : { top: 10, right: 30, left: 20, bottom: 5 }}
             >
               <defs>
                 <linearGradient id="currentGradient" x1="0" y1="0" x2="0" y2="1">
@@ -95,28 +110,6 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          
-          {/* Time to Full Labels floating above bars */}
-          <div className="absolute inset-0 pointer-events-none">
-            {chartData.map((entry, index) => {
-              if (!entry.timeToFull) return null;
-              
-              // Calculate position based on chart dimensions and data
-              const chartWidth = 100; // percentage
-              const barWidth = chartWidth / chartData.length;
-              const leftPosition = (index * barWidth) + (barWidth / 2);
-              
-              return (
-                <div
-                  key={`time-to-full-${index}`}
-                  className={`absolute ${isMobile ? 'top-0' : 'top-2'} transform -translate-x-1/2 bg-orange-500 text-white ${isMobile ? 'text-xs px-1 py-0.5' : 'text-xs px-2 py-1'} rounded-full shadow-lg font-medium z-10`}
-                  style={{ left: `${leftPosition}%` }}
-                >
-                  Full in: {entry.timeToFull}
-                </div>
-              );
-            })}
-          </div>
         </div>
 
         <div className={`grid grid-cols-2 gap-2 ${isMobile ? 'pt-1' : 'pt-4'} border-t border-slate-200/60`}>
@@ -154,14 +147,12 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
       </div>
 
       {isMobile ? (
-        // Mobile: Show all barns stacked vertically
         <div className="space-y-3">
           {barns.map(barn => (
             <BarnChart key={barn.id} barn={barn} />
           ))}
         </div>
       ) : (
-        // Desktop: Show tabs
         <>
           <Tabs value={activeBarn} onValueChange={setActiveBarn} className="mb-4">
             <TabsList className="grid w-full grid-cols-2">
