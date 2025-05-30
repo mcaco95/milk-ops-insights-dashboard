@@ -33,6 +33,42 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
     }
   };
 
+  // Custom tick component to show tank name and ETA
+  const CustomXAxisTick = (props: any) => {
+    const { x, y, payload } = props;
+    const chartData = props.chartData;
+    const tankData = chartData.find((item: any) => item.name === payload.value);
+    
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text 
+          x={0} 
+          y={0} 
+          dy={16} 
+          textAnchor="middle" 
+          fill="#475569" 
+          fontSize={isMobile ? 8 : 12}
+          fontWeight={500}
+        >
+          {payload.value}
+        </text>
+        {tankData?.timeToFull && (
+          <text 
+            x={0} 
+            y={0} 
+            dy={isMobile ? 28 : 32} 
+            textAnchor="middle" 
+            fill="#ea580c" 
+            fontSize={isMobile ? 8 : 10}
+            fontWeight={600}
+          >
+            ETA: {tankData.timeToFull}
+          </text>
+        )}
+      </g>
+    );
+  };
+
   const BarnChart = ({ barn }: { barn: Barn }) => {
     const chartData = barn.tanks.map(tank => ({
       name: tank.name,
@@ -54,26 +90,11 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
           <h3 className="text-sm font-semibold text-slate-800 mb-2">{barn.name}</h3>
         )}
         
-        {/* Time to Full Labels - Above Chart */}
-        <div className={`grid grid-cols-${chartData.length} gap-1 ${isMobile ? 'mb-1' : 'mb-2'}`}>
-          {chartData.map((entry, index) => (
-            <div key={`time-label-${index}`} className="text-center">
-              {entry.timeToFull && (
-                <span className={`inline-block bg-orange-500 text-white rounded-full font-medium ${
-                  isMobile ? 'text-xs px-1.5 py-0.5' : 'text-xs px-2 py-1'
-                } shadow-md`}>
-                  {isMobile ? entry.timeToFull : `Full: ${entry.timeToFull}`}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-        
-        <div className={`${isMobile ? 'h-32' : 'h-64'} ${isMobile ? 'mb-2' : 'mb-6'}`}>
+        <div className={`${isMobile ? 'h-40' : 'h-72'} ${isMobile ? 'mb-2' : 'mb-6'}`}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
               data={chartData} 
-              margin={isMobile ? { top: 5, right: 10, left: 5, bottom: 5 } : { top: 10, right: 30, left: 20, bottom: 5 }}
+              margin={isMobile ? { top: 5, right: 10, left: 5, bottom: 40 } : { top: 10, right: 30, left: 20, bottom: 50 }}
             >
               <defs>
                 <linearGradient id="currentGradient" x1="0" y1="0" x2="0" y2="1">
@@ -90,7 +111,7 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
                 dataKey="name" 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#475569', fontSize: isMobile ? 8 : 12, fontWeight: 500 }}
+                tick={(props) => <CustomXAxisTick {...props} chartData={chartData} />}
               />
               <YAxis 
                 axisLine={false}
