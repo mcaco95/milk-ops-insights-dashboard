@@ -1,38 +1,65 @@
-
 import { useState, useEffect } from 'react';
 import { VolumeWidget } from '../components/dashboard/VolumeWidget';
 import { PickupsWidget } from '../components/dashboard/PickupsWidget';
 import { RoutesWidget } from '../components/dashboard/RoutesWidget';
-import { Tank, CustomerSummary, RouteRecord } from '../types/dashboard';
+import { Barn, CustomerSummary, RouteRecord } from '../types/dashboard';
 
 // Mock API functions with enhanced data
-const fetchTanks = async (): Promise<Tank[]> => {
+const fetchBarns = async (): Promise<Barn[]> => {
   return [
     {
       id: 1,
-      name: "Tank 1",
-      currentVolume: 17340,
-      predictedVolume: 100000,
-      superLoadsAvailable: 2.27,
-      lastHit: "2025-05-30T09:58:00Z",
-      eta: "9:15"
+      name: "Barn A",
+      tanks: [
+        {
+          id: 1,
+          name: "Tank 1",
+          currentVolume: 17340,
+          predictedVolume: 100000,
+          superLoadsAvailable: 2.27,
+          lastHit: "2025-05-30T09:58:00Z",
+          eta: "9:15"
+        },
+        {
+          id: 2,
+          name: "Tank 2", 
+          currentVolume: 45280,
+          predictedVolume: 100000,
+          superLoadsAvailable: 1.83,
+          lastHit: "2025-05-30T08:15:00Z",
+          eta: "7:28"
+        },
+        {
+          id: 3,
+          name: "Tank 3",
+          currentVolume: 78920,
+          predictedVolume: 100000,
+          superLoadsAvailable: 0.84,
+          lastHit: "2025-05-30T07:42:00Z"
+        }
+      ]
     },
     {
       id: 2,
-      name: "Tank 2", 
-      currentVolume: 45280,
-      predictedVolume: 100000,
-      superLoadsAvailable: 1.83,
-      lastHit: "2025-05-30T08:15:00Z",
-      eta: "7:28"
-    },
-    {
-      id: 3,
-      name: "Tank 3",
-      currentVolume: 78920,
-      predictedVolume: 100000,
-      superLoadsAvailable: 0.84,
-      lastHit: "2025-05-30T07:42:00Z"
+      name: "Barn B",
+      tanks: [
+        {
+          id: 4,
+          name: "Tank 4",
+          currentVolume: 32580,
+          predictedVolume: 85000,
+          superLoadsAvailable: 1.95,
+          lastHit: "2025-05-30T06:30:00Z"
+        },
+        {
+          id: 5,
+          name: "Tank 5",
+          currentVolume: 61420,
+          predictedVolume: 85000,
+          superLoadsAvailable: 1.12,
+          lastHit: "2025-05-30T05:45:00Z"
+        }
+      ]
     }
   ];
 };
@@ -86,7 +113,7 @@ const fetchTodaysRoutes = async (): Promise<RouteRecord[]> => {
 };
 
 const Dashboard = () => {
-  const [tanks, setTanks] = useState<Tank[]>([]);
+  const [barns, setBarns] = useState<Barn[]>([]);
   const [pickups, setPickups] = useState<CustomerSummary[]>([]);
   const [routes, setRoutes] = useState<RouteRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,13 +121,13 @@ const Dashboard = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tanksData, pickupsData, routesData] = await Promise.all([
-          fetchTanks(),
+        const [barnsData, pickupsData, routesData] = await Promise.all([
+          fetchBarns(),
           fetchPickups('2025-05'),
           fetchTodaysRoutes()
         ]);
         
-        setTanks(tanksData);
+        setBarns(barnsData);
         setPickups(pickupsData);
         setRoutes(routesData);
       } catch (error) {
@@ -139,7 +166,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Volume Widget - Top Left */}
           <div className="lg:col-span-6">
-            <VolumeWidget tanks={tanks} />
+            <VolumeWidget barns={barns} />
           </div>
 
           {/* Pickups Widget - Top Right */}

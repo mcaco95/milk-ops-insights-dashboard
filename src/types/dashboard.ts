@@ -9,6 +9,12 @@ export type Tank = {
   eta?: string; // ETA for active routes to this tank
 };
 
+export type Barn = {
+  id: number;
+  name: string;
+  tanks: Tank[];
+};
+
 export type CustomerSummary = {
   customer: string;
   totalWeight: number;

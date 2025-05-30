@@ -1,38 +1,32 @@
 
 import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from 'recharts';
-import { Switch } from "@/components/ui/switch";
-import { Tank } from '../../types/dashboard';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Barn } from '../../types/dashboard';
 import { formatNumber, formatDateTime } from '../../utils/formatters';
 
 interface VolumeWidgetProps {
-  tanks: Tank[];
+  barns: Barn[];
 }
 
-export const VolumeWidget = ({ tanks }: VolumeWidgetProps) => {
-  const [visibleTanks, setVisibleTanks] = useState<Record<number, boolean>>(
-    tanks.reduce((acc, tank) => ({ ...acc, [tank.id]: true }), {})
-  );
+export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
+  const [activeBarn, setActiveBarn] = useState(barns[0]?.id.toString() || "1");
 
-  const filteredTanks = tanks.filter(tank => visibleTanks[tank.id]);
+  const currentBarn = barns.find(barn => barn.id.toString() === activeBarn) || barns[0];
   
-  const chartData = filteredTanks.map(tank => ({
+  const chartData = currentBarn?.tanks.map(tank => ({
     name: tank.name,
     current: tank.currentVolume,
     predicted: tank.predictedVolume - tank.currentVolume,
     fillPercentage: (tank.currentVolume / tank.predictedVolume) * 100,
     eta: tank.eta
-  }));
+  })) || [];
 
-  const totalSuperLoads = filteredTanks.reduce((sum, tank) => sum + tank.superLoadsAvailable, 0);
-  const lastHit = filteredTanks.reduce((latest, tank) => 
+  const totalSuperLoads = currentBarn?.tanks.reduce((sum, tank) => sum + tank.superLoadsAvailable, 0) || 0;
+  const lastHit = currentBarn?.tanks.reduce((latest, tank) => 
     new Date(tank.lastHit) > new Date(latest) ? tank.lastHit : latest, 
-    filteredTanks[0]?.lastHit || ''
-  );
-
-  const toggleTankVisibility = (tankId: number) => {
-    setVisibleTanks(prev => ({ ...prev, [tankId]: !prev[tankId] }));
-  };
+    currentBarn?.tanks[0]?.lastHit || ''
+  ) || '';
 
   return (
     <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl shadow-xl border border-slate-200/50 p-6 h-full backdrop-blur-sm">
@@ -50,18 +44,16 @@ export const VolumeWidget = ({ tanks }: VolumeWidgetProps) => {
         </div>
       </div>
 
-      {/* Tank Toggles */}
-      <div className="mb-4 space-y-2">
-        {tanks.map(tank => (
-          <div key={tank.id} className="flex items-center justify-between py-1">
-            <span className="text-sm font-medium text-slate-700">{tank.name}</span>
-            <Switch
-              checked={visibleTanks[tank.id]}
-              onCheckedChange={() => toggleTankVisibility(tank.id)}
-            />
-          </div>
-        ))}
-      </div>
+      {/* Barn Tabs */}
+      <Tabs value={activeBarn} onValueChange={setActiveBarn} className="mb-4">
+        <TabsList className="grid w-full grid-cols-2">
+          {barns.map(barn => (
+            <TabsTrigger key={barn.id} value={barn.id.toString()}>
+              {barn.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       <div className="h-64 mb-6 relative">
         <ResponsiveContainer width="100%" height="100%">
@@ -103,19 +95,26 @@ export const VolumeWidget = ({ tanks }: VolumeWidgetProps) => {
         </ResponsiveContainer>
         
         {/* ETA Labels floating above bars */}
-        {chartData.map((entry, index) => {
-          if (!entry.eta) return null;
-          const xPos = 20 + (index * (100 / chartData.length)) + '%';
-          return (
-            <div
-              key={`eta-${index}`}
-              className="absolute top-2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded-full shadow-lg font-medium"
-              style={{ left: xPos }}
-            >
-              ETA: {entry.eta}
-            </div>
-          );
-        })}
+        <div className="absolute inset-0 pointer-events-none">
+          {chartData.map((entry, index) => {
+            if (!entry.eta) return null;
+            
+            // Calculate position based on chart dimensions and data
+            const chartWidth = 100; // percentage
+            const barWidth = chartWidth / chartData.length;
+            const leftPosition = (index * barWidth) + (barWidth / 2);
+            
+            return (
+              <div
+                key={`eta-${index}`}
+                className="absolute top-2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded-full shadow-lg font-medium z-10"
+                style={{ left: `${leftPosition}%` }}
+              >
+                ETA: {entry.eta}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200/60">
