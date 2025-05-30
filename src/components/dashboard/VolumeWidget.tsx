@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from 'recharts';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Barn } from '../../types/dashboard';
-import { formatNumber, formatCompactDateTime } from '../../utils/formatters';
+import { formatNumber, formatMobileDateTime } from '../../utils/formatters';
 import { useIsMobile } from '../../hooks/useMobile';
 
 interface VolumeWidgetProps {
@@ -51,14 +51,14 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
     return (
       <div className={`${isMobile ? 'mb-3' : ''}`}>
         {isMobile && (
-          <h3 className="text-base font-semibold text-slate-800 mb-2">{barn.name}</h3>
+          <h3 className="text-sm font-semibold text-slate-800 mb-2">{barn.name}</h3>
         )}
         
-        <div className={`${isMobile ? 'h-40' : 'h-64'} ${isMobile ? 'mb-3' : 'mb-6'} relative`}>
+        <div className={`${isMobile ? 'h-32' : 'h-64'} ${isMobile ? 'mb-2' : 'mb-6'} relative`}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
               data={chartData} 
-              margin={isMobile ? { top: 30, right: 15, left: 10, bottom: 5 } : { top: 40, right: 30, left: 20, bottom: 5 }}
+              margin={isMobile ? { top: 25, right: 10, left: 5, bottom: 5 } : { top: 40, right: 30, left: 20, bottom: 5 }}
             >
               <defs>
                 <linearGradient id="currentGradient" x1="0" y1="0" x2="0" y2="1">
@@ -75,12 +75,12 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
                 dataKey="name" 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#475569', fontSize: isMobile ? 10 : 12, fontWeight: 500 }}
+                tick={{ fill: '#475569', fontSize: isMobile ? 8 : 12, fontWeight: 500 }}
               />
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#475569', fontSize: isMobile ? 9 : 12 }}
+                tick={{ fill: '#475569', fontSize: isMobile ? 8 : 12 }}
                 tickFormatter={(value) => formatNumber(value)}
               />
               <Bar dataKey="current" stackId="a" radius={[0, 0, 8, 8]} fill="url(#currentGradient)">
@@ -109,7 +109,7 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
               return (
                 <div
                   key={`time-to-full-${index}`}
-                  className={`absolute ${isMobile ? 'top-1' : 'top-2'} transform -translate-x-1/2 bg-orange-500 text-white ${isMobile ? 'text-xs px-1.5 py-0.5' : 'text-xs px-2 py-1'} rounded-full shadow-lg font-medium z-10`}
+                  className={`absolute ${isMobile ? 'top-0' : 'top-2'} transform -translate-x-1/2 bg-orange-500 text-white ${isMobile ? 'text-xs px-1 py-0.5' : 'text-xs px-2 py-1'} rounded-full shadow-lg font-medium z-10`}
                   style={{ left: `${leftPosition}%` }}
                 >
                   Full in: {entry.timeToFull}
@@ -119,15 +119,15 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
           </div>
         </div>
 
-        <div className={`grid grid-cols-2 gap-2 ${isMobile ? 'pt-2' : 'pt-4'} border-t border-slate-200/60`}>
-          <div className={`text-center bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl ${isMobile ? 'p-2' : 'p-3'} border border-blue-100`}>
+        <div className={`grid grid-cols-2 gap-2 ${isMobile ? 'pt-1' : 'pt-4'} border-t border-slate-200/60`}>
+          <div className={`text-center bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg ${isMobile ? 'p-1.5' : 'p-3'} border border-blue-100`}>
             <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-slate-600 mb-1 font-medium`}>Super Loads</p>
-            <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-blue-700`}>{totalSuperLoads.toFixed(2)}</p>
+            <p className={`${isMobile ? 'text-base' : 'text-2xl'} font-bold text-blue-700`}>{totalSuperLoads.toFixed(2)}</p>
           </div>
-          <div className={`text-center bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl ${isMobile ? 'p-2' : 'p-3'} border border-slate-100`}>
+          <div className={`text-center bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg ${isMobile ? 'p-1.5' : 'p-3'} border border-slate-100`}>
             <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-slate-600 mb-1 font-medium`}>Last Hit</p>
             <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-slate-800`}>
-              {formatCompactDateTime(lastHit)}
+              {formatMobileDateTime(lastHit)}
             </p>
           </div>
         </div>
@@ -136,18 +136,18 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
   };
 
   return (
-    <div className={`bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl shadow-xl border border-slate-200/50 ${isMobile ? 'p-4' : 'p-6'} h-full backdrop-blur-sm`}>
-      <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-6'}`}>
-        <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-slate-800 tracking-tight`}>
+    <div className={`bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl shadow-xl border border-slate-200/50 ${isMobile ? 'p-3' : 'p-6'} h-full backdrop-blur-sm`}>
+      <div className={`flex items-center justify-between ${isMobile ? 'mb-2' : 'mb-6'}`}>
+        <h2 className={`${isMobile ? 'text-base' : 'text-xl'} font-bold text-slate-800 tracking-tight`}>
           Volume & Predictions
         </h2>
         <div className={`flex ${isMobile ? 'flex-col space-y-1' : 'items-center space-x-4'} ${isMobile ? 'text-xs' : 'text-sm'} text-slate-600`}>
           <div className="flex items-center">
-            <div className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'} bg-gradient-to-r from-blue-600 to-blue-700 rounded-full ${isMobile ? 'mr-1' : 'mr-2'} shadow-sm`}></div>
+            <div className={`${isMobile ? 'w-1.5 h-1.5' : 'w-3 h-3'} bg-gradient-to-r from-blue-600 to-blue-700 rounded-full ${isMobile ? 'mr-1' : 'mr-2'} shadow-sm`}></div>
             Current
           </div>
           <div className="flex items-center">
-            <div className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'} bg-gradient-to-r from-blue-300 to-blue-400 rounded-full ${isMobile ? 'mr-1' : 'mr-2'} shadow-sm`}></div>
+            <div className={`${isMobile ? 'w-1.5 h-1.5' : 'w-3 h-3'} bg-gradient-to-r from-blue-300 to-blue-400 rounded-full ${isMobile ? 'mr-1' : 'mr-2'} shadow-sm`}></div>
             Predicted
           </div>
         </div>
@@ -155,7 +155,7 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
 
       {isMobile ? (
         // Mobile: Show all barns stacked vertically
-        <div className="space-y-4">
+        <div className="space-y-3">
           {barns.map(barn => (
             <BarnChart key={barn.id} barn={barn} />
           ))}

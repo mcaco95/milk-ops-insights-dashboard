@@ -45,6 +45,24 @@ export const formatCompactDateTime = (dateString: string): string => {
       minute: '2-digit',
       hour12: false
     });
-    return `${month}/${day} ${time}`;
+    return `${month}/${day}`;
+  }
+};
+
+export const formatMobileDateTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  
+  if (isToday) {
+    return date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false
+    });
+  } else {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}/${day}`;
   }
 };
