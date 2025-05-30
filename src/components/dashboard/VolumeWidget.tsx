@@ -14,12 +14,31 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
 
   const currentBarn = barns.find(barn => barn.id.toString() === activeBarn) || barns[0];
   
+  const calculateTimeToFull = (currentVolume: number, predictedVolume: number, fillRate?: number): string => {
+    if (!fillRate || currentVolume >= predictedVolume) return '';
+    
+    const remainingVolume = predictedVolume - currentVolume;
+    const hoursToFull = remainingVolume / fillRate;
+    
+    if (hoursToFull < 1) {
+      return `${Math.round(hoursToFull * 60)}m`;
+    } else if (hoursToFull < 24) {
+      const hours = Math.floor(hoursToFull);
+      const minutes = Math.round((hoursToFull - hours) * 60);
+      return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+    } else {
+      const days = Math.floor(hoursToFull / 24);
+      const hours = Math.round(hoursToFull % 24);
+      return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+    }
+  };
+  
   const chartData = currentBarn?.tanks.map(tank => ({
     name: tank.name,
     current: tank.currentVolume,
     predicted: tank.predictedVolume - tank.currentVolume,
     fillPercentage: (tank.currentVolume / tank.predictedVolume) * 100,
-    eta: tank.eta
+    timeToFull: calculateTimeToFull(tank.currentVolume, tank.predictedVolume, tank.fillRate)
   })) || [];
 
   const totalSuperLoads = currentBarn?.tanks.reduce((sum, tank) => sum + tank.superLoadsAvailable, 0) || 0;
@@ -94,10 +113,10 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
           </BarChart>
         </ResponsiveContainer>
         
-        {/* ETA Labels floating above bars */}
+        {/* Time to Full Labels floating above bars */}
         <div className="absolute inset-0 pointer-events-none">
           {chartData.map((entry, index) => {
-            if (!entry.eta) return null;
+            if (!entry.timeToFull) return null;
             
             // Calculate position based on chart dimensions and data
             const chartWidth = 100; // percentage
@@ -106,11 +125,11 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
             
             return (
               <div
-                key={`eta-${index}`}
-                className="absolute top-2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded-full shadow-lg font-medium z-10"
+                key={`time-to-full-${index}`}
+                className="absolute top-2 transform -translate-x-1/2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full shadow-lg font-medium z-10"
                 style={{ left: `${leftPosition}%` }}
               >
-                ETA: {entry.eta}
+                Full in: {entry.timeToFull}
               </div>
             );
           })}

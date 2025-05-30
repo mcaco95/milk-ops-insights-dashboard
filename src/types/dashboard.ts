@@ -1,4 +1,3 @@
-
 export type Tank = {
   id: number;
   name: string;
@@ -6,7 +5,7 @@ export type Tank = {
   predictedVolume: number;
   superLoadsAvailable: number;
   lastHit: string;
-  eta?: string; // ETA for active routes to this tank
+  fillRate?: number; // gallons per hour
 };
 
 export type Barn = {

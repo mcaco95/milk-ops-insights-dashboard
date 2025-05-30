@@ -18,7 +18,7 @@ const fetchBarns = async (): Promise<Barn[]> => {
           predictedVolume: 100000,
           superLoadsAvailable: 2.27,
           lastHit: "2025-05-30T09:58:00Z",
-          eta: "9:15"
+          fillRate: 1200 // gallons per hour
         },
         {
           id: 2,
@@ -27,7 +27,7 @@ const fetchBarns = async (): Promise<Barn[]> => {
           predictedVolume: 100000,
           superLoadsAvailable: 1.83,
           lastHit: "2025-05-30T08:15:00Z",
-          eta: "7:28"
+          fillRate: 850 // gallons per hour
         },
         {
           id: 3,
@@ -35,7 +35,8 @@ const fetchBarns = async (): Promise<Barn[]> => {
           currentVolume: 78920,
           predictedVolume: 100000,
           superLoadsAvailable: 0.84,
-          lastHit: "2025-05-30T07:42:00Z"
+          lastHit: "2025-05-30T07:42:00Z",
+          fillRate: 600 // gallons per hour
         }
       ]
     },
@@ -49,7 +50,8 @@ const fetchBarns = async (): Promise<Barn[]> => {
           currentVolume: 32580,
           predictedVolume: 85000,
           superLoadsAvailable: 1.95,
-          lastHit: "2025-05-30T06:30:00Z"
+          lastHit: "2025-05-30T06:30:00Z",
+          fillRate: 900 // gallons per hour
         },
         {
           id: 5,
@@ -57,7 +59,8 @@ const fetchBarns = async (): Promise<Barn[]> => {
           currentVolume: 61420,
           predictedVolume: 85000,
           superLoadsAvailable: 1.12,
-          lastHit: "2025-05-30T05:45:00Z"
+          lastHit: "2025-05-30T05:45:00Z",
+          fillRate: 750 // gallons per hour
         }
       ]
     }
