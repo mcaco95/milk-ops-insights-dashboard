@@ -108,53 +108,45 @@ export const DairyOverviewWidget = ({ barn }: DairyOverviewWidgetProps) => {
         />
       </div>
 
-      {/* Priority Actions Section - Much clearer than color bars */}
+      {/* Tank Status Grid */}
       <div className={`${isMobile ? 'mt-3 pt-3' : 'mt-6 pt-6'} border-t border-slate-200/60`}>
         <h3 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-slate-700 mb-3`}>
-          Priority Actions
+          Tank Status by Barn
         </h3>
-        
-        {criticalTanks > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <div>
-                <p className="font-semibold text-red-700">URGENT: Tanks Need Wash</p>
-                <p className="text-sm text-red-600">
-                  {criticalTanks} tank{criticalTanks > 1 ? 's' : ''} need immediate attention
-                </p>
+        <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-3'} gap-3`}>
+          {[1, 2, 3].map(barnNum => {
+            const barnTanks = barn.tanks.filter(tank => tank.name.includes(`Barn ${barnNum}`));
+            const barnWashNeeded = barnTanks.filter(tank => tank.washAlertStatus !== 'ok').length;
+            
+            return (
+              <div key={barnNum} className="bg-white/60 rounded-lg p-3 border border-slate-200/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-medium text-slate-700`}>
+                    Barn {barnNum}
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    barnWashNeeded > 0 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+                  }`}>
+                    {barnTanks.length} tanks
+                  </span>
+                </div>
+                <div className="flex space-x-1">
+                  {barnTanks.map(tank => (
+                    <div
+                      key={tank.id}
+                      className={`flex-1 h-2 rounded-full ${
+                        tank.washAlertStatus === 'critical' ? 'bg-red-400' :
+                        tank.washAlertStatus === 'warning' ? 'bg-orange-400' :
+                        'bg-green-400'
+                      }`}
+                      title={`${tank.name}: ${tank.washAlertStatus}`}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-        
-        {tanksNeedingWash > criticalTanks && (
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-3">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-500" />
-              <div>
-                <p className="font-semibold text-orange-700">Schedule Wash Soon</p>
-                <p className="text-sm text-orange-600">
-                  {tanksNeedingWash - criticalTanks} tank{tanksNeedingWash - criticalTanks > 1 ? 's' : ''} need washing within 24 hours
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {tanksNeedingWash === 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center">
-                <div className="h-2 w-2 bg-white rounded-full"></div>
-              </div>
-              <div>
-                <p className="font-semibold text-green-700">All Tanks OK</p>
-                <p className="text-sm text-green-600">No immediate action needed</p>
-              </div>
-            </div>
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

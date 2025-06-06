@@ -1,11 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { VolumeWidget } from '../components/dashboard/VolumeWidget';
 import { PickupsWidget } from '../components/dashboard/PickupsWidget';
 import { RoutesWidget } from '../components/dashboard/RoutesWidget';
 import { DairyOverviewWidget } from '../components/dashboard/DairyOverviewWidget';
-import { SimpleTankStatus } from '../components/dashboard/SimpleTankStatus';
-import { AppSidebar } from '../components/AppSidebar';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Barn, CustomerSummary, RouteRecord, Tank } from '../types/dashboard';
 
 // Mock function to get dairy-specific data
@@ -154,64 +152,54 @@ const DairyDashboard = () => {
 
   if (loading) {
     return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-          <AppSidebar />
-          <SidebarInset className="flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6 shadow-lg"></div>
-              <p className="text-slate-700 font-medium text-lg">Loading your dairy data...</p>
-            </div>
-          </SidebarInset>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6 shadow-lg"></div>
+          <p className="text-slate-700 font-medium text-lg">Loading your dairy data...</p>
         </div>
-      </SidebarProvider>
+      </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <AppSidebar />
-        <SidebarInset>
-          <div className="container mx-auto p-4 md:p-6">
-            {/* Header with sidebar toggle */}
-            <div className="flex items-center justify-between mb-6 md:mb-8">
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent mb-2 md:mb-3 tracking-tight">
-                  {barn?.name || 'Dairy Dashboard'}
-                </h1>
-                <p className="text-slate-600 text-base md:text-lg font-medium">
-                  Farm monitoring dashboard
-                </p>
-              </div>
-              <SidebarTrigger />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="container mx-auto p-4 md:p-6">
+        {/* Header */}
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent mb-2 md:mb-3 tracking-tight">
+            {barn?.name || 'Dairy Dashboard'}
+          </h1>
+          <p className="text-slate-600 text-base md:text-lg font-medium">
+            Real-time monitoring for your 3 barns and 6 tanks
+          </p>
+        </div>
+
+        {/* Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8">
+          {/* Dairy Overview - Top Full Width */}
+          {barn && (
+            <div className="lg:col-span-12">
+              <DairyOverviewWidget barn={barn} />
             </div>
+          )}
 
-            {/* Dashboard Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-              {/* Dairy Overview - Top Full Width */}
-              {barn && (
-                <div className="lg:col-span-12">
-                  <DairyOverviewWidget barn={barn} />
-                </div>
-              )}
-
-              {/* Simple Tank Status - Left */}
-              {barn && (
-                <div className="lg:col-span-12 bg-white rounded-2xl shadow-xl p-4 md:p-6">
-                  <SimpleTankStatus tanks={barn.tanks} />
-                </div>
-              )}
-
-              {/* Routes Widget - Bottom Full Width */}
-              <div className="lg:col-span-12">
-                <RoutesWidget routes={routes} />
-              </div>
-            </div>
+          {/* Volume Widget - Left */}
+          <div className="lg:col-span-6">
+            <VolumeWidget barns={barn ? [barn] : []} />
           </div>
-        </SidebarInset>
+
+          {/* Pickups Widget - Right */}
+          <div className="lg:col-span-6">
+            <PickupsWidget pickups={pickups} />
+          </div>
+
+          {/* Routes Widget - Bottom Full Width */}
+          <div className="lg:col-span-12">
+            <RoutesWidget routes={routes} />
+          </div>
+        </div>
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 
