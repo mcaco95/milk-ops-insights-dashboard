@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from 'recharts';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AlertTriangle, Droplets } from 'lucide-react';
 import { Barn } from '../../types/dashboard';
 import { formatNumber, formatMobileDateTime } from '../../utils/formatters';
 import { useIsMobile } from '../../hooks/useMobile';
@@ -33,6 +34,14 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
     }
   };
 
+  const getWashAlertColor = (status: string): string => {
+    switch (status) {
+      case 'critical': return '#dc2626'; // red-600
+      case 'warning': return '#ea580c'; // orange-600
+      default: return '#1e40af'; // blue-700
+    }
+  };
+
   // Custom tick component to show tank name and ETA
   const CustomXAxisTick = (props: any) => {
     const { x, y, payload } = props;
@@ -58,7 +67,7 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
             y={0} 
             dy={isMobile ? 28 : 32} 
             textAnchor="middle" 
-            fill="#ea580c" 
+            fill={getWashAlertColor(tankData.washStatus)}
             fontSize={isMobile ? 8 : 10}
             fontWeight={600}
           >
@@ -75,7 +84,9 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
       current: tank.currentVolume,
       predicted: tank.predictedVolume - tank.currentVolume,
       fillPercentage: (tank.currentVolume / tank.predictedVolume) * 100,
-      timeToFull: calculateTimeToFull(tank.currentVolume, tank.predictedVolume, tank.fillRate)
+      timeToFull: calculateTimeToFull(tank.currentVolume, tank.predictedVolume, tank.fillRate),
+      washStatus: tank.washAlertStatus,
+      capacity: tank.capacity
     }));
 
     const totalSuperLoads = barn.tanks.reduce((sum, tank) => sum + tank.superLoadsAvailable, 0);
@@ -84,10 +95,23 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
       barn.tanks[0]?.lastHit || ''
     );
 
+    const alertsCount = barn.tanks.filter(tank => tank.washAlertStatus !== 'ok').length;
+    const criticalCount = barn.tanks.filter(tank => tank.washAlertStatus === 'critical').length;
+
     return (
       <div className={`${isMobile ? 'mb-3' : ''}`}>
         {isMobile && (
-          <h3 className="text-sm font-semibold text-slate-800 mb-2">{barn.name}</h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-slate-800">{barn.name}</h3>
+            {alertsCount > 0 && (
+              <div className="flex items-center space-x-1">
+                <AlertTriangle size={12} className={criticalCount > 0 ? 'text-red-500' : 'text-orange-500'} />
+                <span className={`text-xs font-medium ${criticalCount > 0 ? 'text-red-600' : 'text-orange-600'}`}>
+                  {alertsCount} alert{alertsCount > 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
+          </div>
         )}
         
         <div className={`${isMobile ? 'h-40' : 'h-72'} ${isMobile ? 'mb-2' : 'mb-6'}`}>
@@ -105,6 +129,15 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
                   <stop offset="0%" stopColor="#93c5fd" />
                   <stop offset="100%" stopColor="#bfdbfe" />
                 </linearGradient>
+                {/* Wash alert gradients */}
+                <linearGradient id="criticalGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#dc2626" />
+                  <stop offset="100%" stopColor="#ef4444" />
+                </linearGradient>
+                <linearGradient id="warningGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ea580c" />
+                  <stop offset="100%" stopColor="#f97316" />
+                </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
               <XAxis 
@@ -119,9 +152,14 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
                 tick={{ fill: '#475569', fontSize: isMobile ? 8 : 12 }}
                 tickFormatter={(value) => formatNumber(value)}
               />
-              <Bar dataKey="current" stackId="a" radius={[0, 0, 8, 8]} fill="url(#currentGradient)">
+              <Bar dataKey="current" stackId="a" radius={[0, 0, 8, 8]}>
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-current-${index}`} />
+                  <Cell 
+                    key={`cell-current-${index}`} 
+                    fill={entry.washStatus === 'critical' ? 'url(#criticalGradient)' : 
+                          entry.washStatus === 'warning' ? 'url(#warningGradient)' : 
+                          'url(#currentGradient)'}
+                  />
                 ))}
               </Bar>
               <Bar dataKey="predicted" stackId="a" radius={[8, 8, 0, 0]} fill="url(#predictedGradient)">
@@ -145,6 +183,19 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
             </p>
           </div>
         </div>
+
+        {/* Wash Alert Summary */}
+        {!isMobile && alertsCount > 0 && (
+          <div className="mt-4 p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle size={16} className={criticalCount > 0 ? 'text-red-500' : 'text-orange-500'} />
+              <span className={`text-sm font-medium ${criticalCount > 0 ? 'text-red-600' : 'text-orange-600'}`}>
+                {alertsCount} tank{alertsCount > 1 ? 's' : ''} need{alertsCount === 1 ? 's' : ''} wash
+                {criticalCount > 0 && ` (${criticalCount} critical)`}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -152,17 +203,24 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
   return (
     <div className={`bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl shadow-xl border border-slate-200/50 ${isMobile ? 'p-3' : 'p-6'} h-full backdrop-blur-sm`}>
       <div className={`flex items-center justify-between ${isMobile ? 'mb-2' : 'mb-6'}`}>
-        <h2 className={`${isMobile ? 'text-base' : 'text-xl'} font-bold text-slate-800 tracking-tight`}>
-          Volume & Predictions
-        </h2>
+        <div className="flex items-center space-x-2">
+          <Droplets size={isMobile ? 16 : 20} className="text-blue-600" />
+          <h2 className={`${isMobile ? 'text-base' : 'text-xl'} font-bold text-slate-800 tracking-tight`}>
+            Volume & Wash Status
+          </h2>
+        </div>
         <div className={`flex ${isMobile ? 'flex-col space-y-1' : 'items-center space-x-4'} ${isMobile ? 'text-xs' : 'text-sm'} text-slate-600`}>
           <div className="flex items-center">
             <div className={`${isMobile ? 'w-1.5 h-1.5' : 'w-3 h-3'} bg-gradient-to-r from-blue-600 to-blue-700 rounded-full ${isMobile ? 'mr-1' : 'mr-2'} shadow-sm`}></div>
-            Current
+            Normal
           </div>
           <div className="flex items-center">
-            <div className={`${isMobile ? 'w-1.5 h-1.5' : 'w-3 h-3'} bg-gradient-to-r from-blue-300 to-blue-400 rounded-full ${isMobile ? 'mr-1' : 'mr-2'} shadow-sm`}></div>
-            Predicted
+            <div className={`${isMobile ? 'w-1.5 h-1.5' : 'w-3 h-3'} bg-gradient-to-r from-orange-600 to-orange-700 rounded-full ${isMobile ? 'mr-1' : 'mr-2'} shadow-sm`}></div>
+            Wash Alert
+          </div>
+          <div className="flex items-center">
+            <div className={`${isMobile ? 'w-1.5 h-1.5' : 'w-3 h-3'} bg-gradient-to-r from-red-600 to-red-700 rounded-full ${isMobile ? 'mr-1' : 'mr-2'} shadow-sm`}></div>
+            Critical
           </div>
         </div>
       </div>
@@ -176,10 +234,10 @@ export const VolumeWidget = ({ barns }: VolumeWidgetProps) => {
       ) : (
         <>
           <Tabs value={activeBarn} onValueChange={setActiveBarn} className="mb-4">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               {barns.map(barn => (
                 <TabsTrigger key={barn.id} value={barn.id.toString()}>
-                  {barn.name}
+                  {barn.name.split('-')[0]}
                 </TabsTrigger>
               ))}
             </TabsList>

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { ExternalLink, Clock, MapPin, Eye } from 'lucide-react';
+import { ExternalLink, Clock, MapPin, Eye, Navigation, User } from 'lucide-react';
 import { RouteRecord } from '../../types/dashboard';
 import { formatTime } from '../../utils/formatters';
 import { useIsMobile } from '../../hooks/useMobile';
@@ -43,7 +43,8 @@ export const RoutesWidget = ({ routes }: RoutesWidgetProps) => {
   const getStatusBadge = (status: RouteRecord['status']) => {
     const styles = {
       active: 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200',
-      closed: 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-600 border-gray-200'
+      closed: 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-600 border-gray-200',
+      scheduled: 'bg-gradient-to-r from-blue-100 to-sky-100 text-blue-800 border-blue-200'
     };
 
     return (
@@ -57,10 +58,13 @@ export const RoutesWidget = ({ routes }: RoutesWidgetProps) => {
     <>
       <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl shadow-xl border border-slate-200/50 p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-800 tracking-tight">Today's Routes</h2>
+          <div className="flex items-center space-x-2">
+            <Navigation size={20} className="text-blue-600" />
+            <h2 className="text-xl font-bold text-slate-800 tracking-tight">Live Route Tracking</h2>
+          </div>
           <div className="flex items-center space-x-2 text-sm text-slate-600">
-            <Clock size={16} className="text-blue-500" />
-            <span className="font-medium">Real-time updates</span>
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="font-medium">GPS Updates</span>
           </div>
         </div>
 
@@ -84,6 +88,12 @@ export const RoutesWidget = ({ routes }: RoutesWidgetProps) => {
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
+                      {route.status === 'active' && route.currentLocation && (
+                        <div className="flex items-center space-x-1 text-xs text-green-600">
+                          <MapPin size={10} />
+                          <span>{route.currentLocation.speed}mph</span>
+                        </div>
+                      )}
                       {route.status === 'active' && (
                         <a 
                           href={route.trackingUrl}
@@ -102,6 +112,9 @@ export const RoutesWidget = ({ routes }: RoutesWidgetProps) => {
                   <div className="flex justify-between items-center">
                     <div className="space-y-1">
                       <div className="text-xs text-slate-600">
+                        Driver: <span className="font-medium">{route.driverName || 'Unknown'}</span>
+                      </div>
+                      <div className="text-xs text-slate-600">
                         Invoice: <span className="font-mono font-medium">{route.invoiceNumber}</span>
                       </div>
                       {route.status === 'active' && (
@@ -117,7 +130,7 @@ export const RoutesWidget = ({ routes }: RoutesWidgetProps) => {
               ))}
             </div>
           ) : (
-            // Desktop Layout - Full Table
+            // Desktop Layout - Enhanced with GPS data
             <table className="w-full">
               <thead className="bg-gradient-to-r from-slate-100 to-blue-100 border-b border-slate-200">
                 <tr>
@@ -134,13 +147,13 @@ export const RoutesWidget = ({ routes }: RoutesWidgetProps) => {
                     Route #
                   </th>
                   <th className="text-left py-4 px-6 font-semibold text-slate-700">
+                    Driver & Vehicle
+                  </th>
+                  <th className="text-left py-4 px-6 font-semibold text-slate-700">
                     Dairy (Tank)
                   </th>
                   <th className="text-left py-4 px-6 font-semibold text-slate-700">
-                    LT#
-                  </th>
-                  <th className="text-left py-4 px-6 font-semibold text-slate-700">
-                    Invoice#
+                    LT# / Invoice#
                   </th>
                   <th 
                     className="text-left py-4 px-6 font-semibold text-slate-700 cursor-pointer hover:text-slate-900 transition-colors"
@@ -149,7 +162,7 @@ export const RoutesWidget = ({ routes }: RoutesWidgetProps) => {
                     Status
                   </th>
                   <th className="text-left py-4 px-6 font-semibold text-slate-700">
-                    ETA
+                    ETA / GPS
                   </th>
                   <th className="text-left py-4 px-6 font-semibold text-slate-700">
                     Track
@@ -165,26 +178,56 @@ export const RoutesWidget = ({ routes }: RoutesWidgetProps) => {
                     <td className="py-4 px-6 text-sm font-bold text-blue-600 group-hover:text-blue-700">
                       {route.routeNumber}
                     </td>
+                    <td className="py-4 px-6 text-sm text-slate-800">
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-1">
+                          <User size={12} />
+                          <span className="font-medium">{route.driverName || 'Unknown'}</span>
+                        </div>
+                        {route.vehicleId && (
+                          <div className="text-xs text-slate-600 font-mono">
+                            {route.vehicleId}
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td className="py-4 px-6 text-sm text-slate-800 font-medium">
                       {route.dairy} ({route.tank})
                     </td>
-                    <td className="py-4 px-6 text-sm font-mono text-slate-700 bg-slate-50 group-hover:bg-slate-100 transition-colors">
-                      {route.ltNumber}
-                    </td>
-                    <td className="py-4 px-6 text-sm font-mono text-slate-700 bg-slate-50 group-hover:bg-slate-100 transition-colors">
-                      {route.invoiceNumber}
+                    <td className="py-4 px-6 text-sm text-slate-700">
+                      <div className="space-y-1">
+                        <div className="font-mono text-xs bg-slate-50 group-hover:bg-slate-100 px-2 py-1 rounded transition-colors">
+                          {route.ltNumber}
+                        </div>
+                        <div className="font-mono text-xs bg-slate-50 group-hover:bg-slate-100 px-2 py-1 rounded transition-colors">
+                          {route.invoiceNumber}
+                        </div>
+                      </div>
                     </td>
                     <td className="py-4 px-6">
                       {getStatusBadge(route.status)}
                     </td>
                     <td className="py-4 px-6 text-sm text-slate-800">
                       {route.status === 'active' ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <Clock size={12} className="text-green-500" />
+                            <span className="font-medium">{route.eta}</span>
+                          </div>
+                          {route.currentLocation && (
+                            <div className="flex items-center space-x-1 text-xs text-slate-600">
+                              <Navigation size={10} />
+                              <span>{route.currentLocation.speed}mph</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : route.status === 'scheduled' ? (
                         <div className="flex items-center space-x-2">
-                          <Clock size={12} className="text-green-500" />
+                          <Clock size={12} className="text-blue-500" />
                           <span className="font-medium">{route.eta}</span>
                         </div>
                       ) : (
-                        <span className="text-slate-500 font-medium">closed</span>
+                        <span className="text-slate-500 font-medium">completed</span>
                       )}
                     </td>
                     <td className="py-4 px-6">
