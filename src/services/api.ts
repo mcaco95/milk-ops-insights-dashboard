@@ -81,12 +81,18 @@ class ApiService {
   }
 
   private getMockTanks(): TanksResponse {
-    const statuses: ('normal' | 'warning' | 'critical')[] = ['normal', 'warning', 'critical'];
-    
     const tanks = Array.from({ length: 8 }, (_, i) => {
       const capacity = 5000 + Math.floor(Math.random() * 3000);
       const fillPercentage = Math.floor(Math.random() * 100);
       const currentVolume = Math.floor(capacity * fillPercentage / 100);
+      
+      // Ensure status uses the correct literal type values
+      let status: 'normal' | 'warning' | 'critical' = 'normal';
+      if (fillPercentage > 90) {
+        status = 'critical';
+      } else if (fillPercentage > 75) {
+        status = 'warning';
+      }
       
       return {
         id: i + 1,
@@ -94,7 +100,7 @@ class ApiService {
         current_volume: currentVolume,
         capacity,
         fill_percentage: fillPercentage,
-        status: fillPercentage > 90 ? 'critical' : fillPercentage > 75 ? 'warning' : 'normal',
+        status,
         last_pickup: new Date(Date.now() - Math.random() * 86400000 * 3).toISOString(),
         estimated_full: new Date(Date.now() + Math.random() * 86400000 * 2).toISOString()
       };
