@@ -1,15 +1,13 @@
-
 import { useState, useEffect } from 'react';
-import { VolumeWidget } from '../components/dashboard/VolumeWidget';
-import { PickupsWidget } from '../components/dashboard/PickupsWidget';
-import { RoutesWidget } from '../components/dashboard/RoutesWidget';
-import { DairyOverviewWidget } from '../components/dashboard/DairyOverviewWidget';
-import { Barn, CustomerSummary, RouteRecord, Tank } from '../types/dashboard';
+import { DairyLayout } from '../components/dairy/DairyLayout';
+import { Link } from 'react-router-dom';
+import { Droplets, Truck, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Barn } from '../types/dashboard';
 
 // Mock function to get dairy-specific data
-const fetchDairyData = async (dairyId: string) => {
-  // In real implementation, this would filter by dairy ID
-  // For now, showing Milky Way (633) as example
+const fetchDairyData = async () => {
+  // Mock data - simplified for overview
   const barn: Barn = {
     id: 1,
     name: "Milky Way Dairy",
@@ -87,55 +85,18 @@ const fetchDairyData = async (dairyId: string) => {
     ]
   };
 
-  const routes: RouteRecord[] = [
-    {
-      startTime: "2025-06-05T12:00:00Z",
-      routeNumber: 74,
-      dairy: "Milky Way (633)",
-      tank: 2,
-      ltNumber: "LMH32001",
-      invoiceNumber: "10175359",
-      status: "active",
-      eta: "7:28",
-      trackingUrl: "https://track.example.com/LMH32001",
-      driverName: "Maria Rodriguez",
-      vehicleId: "VEH-015",
-      currentLocation: {
-        lat: 33.4584,
-        lng: -112.0840,
-        speed: 65,
-        timestamp: "2025-06-05T14:32:00Z"
-      }
-    }
-  ];
-
-  const pickups: CustomerSummary[] = [
-    { customer: "Fairlife", totalWeight: 2890000, invoiceCount: 42, marketShare: 35.2 },
-    { customer: "Schreiber", totalWeight: 1850000, invoiceCount: 28, marketShare: 22.5 },
-    { customer: "UDA", totalWeight: 1720000, invoiceCount: 25, marketShare: 20.9 },
-    { customer: "Horizon", totalWeight: 1240000, invoiceCount: 18, marketShare: 15.1 },
-    { customer: "Clover", totalWeight: 512000, invoiceCount: 7, marketShare: 6.3 }
-  ];
-
-  return { barn, routes, pickups };
+  return { barn };
 };
 
 const DairyDashboard = () => {
   const [barn, setBarn] = useState<Barn | null>(null);
-  const [pickups, setPickups] = useState<CustomerSummary[]>([]);
-  const [routes, setRoutes] = useState<RouteRecord[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // In real implementation, get dairy ID from authentication
-  const dairyId = "633"; // Milky Way dairy ID
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const data = await fetchDairyData(dairyId);
+        const data = await fetchDairyData();
         setBarn(data.barn);
-        setPickups(data.pickups);
-        setRoutes(data.routes);
       } catch (error) {
         console.error('Failed to load dairy data:', error);
       } finally {
@@ -144,62 +105,132 @@ const DairyDashboard = () => {
     };
 
     loadData();
-
-    // Auto-refresh every 30 seconds
     const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
-  }, [dairyId]);
+  }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6 shadow-lg"></div>
-          <p className="text-slate-700 font-medium text-lg">Loading your dairy data...</p>
+      <DairyLayout>
+        <div className="flex items-center justify-center min-h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+            <p className="text-slate-600">Loading your dairy data...</p>
+          </div>
         </div>
-      </div>
+      </DairyLayout>
     );
   }
 
+  const tanksNeedingWash = barn?.tanks.filter(tank => tank.washAlertStatus !== 'ok').length || 0;
+  const totalVolume = barn?.tanks.reduce((sum, tank) => sum + tank.currentVolume, 0) || 0;
+  const totalCapacity = barn?.tanks.reduce((sum, tank) => sum + tank.capacity, 0) || 0;
+  const capacityUtilization = Math.round((totalVolume / totalCapacity) * 100);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="container mx-auto p-4 md:p-6">
-        {/* Header */}
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent mb-2 md:mb-3 tracking-tight">
-            {barn?.name || 'Dairy Dashboard'}
+    <DairyLayout dairyName={barn?.name}>
+      <div className="p-4 pb-20 md:pb-4">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">
+            Welcome to {barn?.name || 'Your Dairy'}
           </h1>
-          <p className="text-slate-600 text-base md:text-lg font-medium">
-            Real-time monitoring for your 3 barns and 6 tanks
-          </p>
+          <p className="text-slate-600">Here's what's happening with your dairy today</p>
         </div>
 
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8">
-          {/* Dairy Overview - Top Full Width */}
-          {barn && (
-            <div className="lg:col-span-12">
-              <DairyOverviewWidget barn={barn} />
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-lg p-4 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-blue-600">{barn?.tanks.length || 0}</p>
+                <p className="text-sm text-slate-600">Total Tanks</p>
+              </div>
+              <Droplets size={24} className="text-blue-600" />
             </div>
-          )}
-
-          {/* Volume Widget - Left */}
-          <div className="lg:col-span-6">
-            <VolumeWidget barns={barn ? [barn] : []} />
           </div>
 
-          {/* Pickups Widget - Right */}
-          <div className="lg:col-span-6">
-            <PickupsWidget pickups={pickups} />
+          <div className="bg-white rounded-lg p-4 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-orange-600">{tanksNeedingWash}</p>
+                <p className="text-sm text-slate-600">Need Wash</p>
+              </div>
+              <AlertTriangle size={24} className="text-orange-600" />
+            </div>
           </div>
 
-          {/* Routes Widget - Bottom Full Width */}
-          <div className="lg:col-span-12">
-            <RoutesWidget routes={routes} />
+          <div className="bg-white rounded-lg p-4 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-green-600">{capacityUtilization}%</p>
+                <p className="text-sm text-slate-600">Capacity</p>
+              </div>
+              <CheckCircle size={24} className="text-green-600" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-4 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-purple-600">{Math.round(totalVolume/1000)}K</p>
+                <p className="text-sm text-slate-600">Liters</p>
+              </div>
+              <Droplets size={24} className="text-purple-600" />
+            </div>
           </div>
         </div>
+
+        {/* Quick Actions */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-slate-800">Quick Actions</h2>
+          
+          <div className="grid gap-4 md:grid-cols-3">
+            <Link to="/dairy/tanks">
+              <Button className="w-full h-24 flex flex-col space-y-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 border-2">
+                <Droplets size={24} />
+                <span className="font-medium">Check Tanks</span>
+                <span className="text-sm opacity-75">Monitor tank status & volumes</span>
+              </Button>
+            </Link>
+
+            <Link to="/dairy/routes">
+              <Button className="w-full h-24 flex flex-col space-y-2 bg-green-50 hover:bg-green-100 text-green-700 border-green-200 border-2">
+                <Truck size={24} />
+                <span className="font-medium">Track Pickups</span>
+                <span className="text-sm opacity-75">See active milk collections</span>
+              </Button>
+            </Link>
+
+            <Link to="/dairy/reports">
+              <Button className="w-full h-24 flex flex-col space-y-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 border-2">
+                <FileText size={24} />
+                <span className="font-medium">View Reports</span>
+                <span className="text-sm opacity-75">Production summaries</span>
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Urgent Alerts */}
+        {tanksNeedingWash > 0 && (
+          <div className="mt-8 bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+            <div className="flex items-center mb-2">
+              <AlertTriangle size={20} className="text-orange-600 mr-2" />
+              <h3 className="font-semibold text-orange-800">Action Needed</h3>
+            </div>
+            <p className="text-orange-700 mb-3">
+              {tanksNeedingWash} tank{tanksNeedingWash > 1 ? 's' : ''} need{tanksNeedingWash === 1 ? 's' : ''} washing
+            </p>
+            <Link to="/dairy/tanks">
+              <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
+                View Tank Details
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
-    </div>
+    </DairyLayout>
   );
 };
 
