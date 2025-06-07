@@ -25,7 +25,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-emerald-800 bg-clip-text text-transparent">
                 {user?.dairy_name}
               </h1>
             </div>
@@ -38,8 +38,8 @@ const Navbar = () => {
                     to={item.href}
                     className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                       isActive(item.href)
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
                     }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
@@ -66,7 +66,7 @@ const Navbar = () => {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+              className="inline-flex items-center justify-center p-2 rounded-md text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
             >
               {isOpen ? (
                 <X className="block h-6 w-6" />
@@ -91,8 +91,8 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                   className={`block px-3 py-2 text-base font-medium rounded-lg transition-all duration-200 ${
                     isActive(item.href)
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
                   }`}
                 >
                   <div className="flex items-center">

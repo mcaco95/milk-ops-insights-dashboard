@@ -31,7 +31,7 @@ export const PickupsWidget = ({ pickups }: PickupsWidgetProps) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl shadow-xl border border-slate-200/50 p-6 h-full backdrop-blur-sm">
+    <div className="bg-gradient-to-br from-slate-50 to-emerald-50 rounded-2xl shadow-xl border border-slate-200/50 p-6 h-full backdrop-blur-sm">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-slate-800 tracking-tight">Monthly Pick-Ups</h2>
         <button
@@ -43,9 +43,9 @@ export const PickupsWidget = ({ pickups }: PickupsWidgetProps) => {
         </button>
       </div>
 
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 border border-blue-100 shadow-inner">
+      <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 mb-6 border border-emerald-100 shadow-inner">
         <p className="text-sm text-slate-600 mb-1 font-medium">Total this month</p>
-        <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">{formatNumber(totalWeight)} lbs</p>
+        <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-green-800 bg-clip-text text-transparent">{formatNumber(totalWeight)} lbs</p>
       </div>
 
       <div className="h-64">
@@ -53,12 +53,12 @@ export const PickupsWidget = ({ pickups }: PickupsWidgetProps) => {
           <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <defs>
               <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#334155" />
-                <stop offset="50%" stopColor="#475569" />
-                <stop offset="100%" stopColor="#64748b" />
+                <stop offset="0%" stopColor="#059669" />
+                <stop offset="50%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#34d399" />
               </linearGradient>
               <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="2" dy="4" stdDeviation="3" floodColor="#1e293b" floodOpacity="0.3"/>
+                <feDropShadow dx="2" dy="4" stdDeviation="3" floodColor="#064e3b" floodOpacity="0.3"/>
               </filter>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />

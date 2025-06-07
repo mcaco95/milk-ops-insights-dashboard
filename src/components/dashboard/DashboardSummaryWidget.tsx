@@ -45,7 +45,7 @@ export const DashboardSummaryWidget = ({ summary }: DashboardSummaryWidgetProps)
         </div>
         <div className={`${isMobile ? 'w-8 h-8' : 'w-12 h-12'} rounded-lg bg-gradient-to-br ${color.includes('red') ? 'from-red-100 to-red-200' : 
           color.includes('orange') ? 'from-orange-100 to-orange-200' :
-          color.includes('blue') ? 'from-blue-100 to-blue-200' :
+          color.includes('emerald') ? 'from-emerald-100 to-emerald-200' :
           'from-green-100 to-green-200'} flex items-center justify-center`}>
           <Icon size={isMobile ? 16 : 20} className={color} />
         </div>
@@ -54,7 +54,7 @@ export const DashboardSummaryWidget = ({ summary }: DashboardSummaryWidgetProps)
   );
 
   return (
-    <div className={`bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl shadow-xl border border-slate-200/50 ${
+    <div className={`bg-gradient-to-br from-slate-50 to-emerald-50 rounded-2xl shadow-xl border border-slate-200/50 ${
       isMobile ? 'p-4' : 'p-6'
     } backdrop-blur-sm`}>
       <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-6'}`}>
@@ -62,7 +62,7 @@ export const DashboardSummaryWidget = ({ summary }: DashboardSummaryWidgetProps)
           Operations Overview
         </h2>
         <div className="flex items-center space-x-2 text-sm text-slate-600">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
           <span className="font-medium">Live Updates</span>
         </div>
       </div>
@@ -73,7 +73,7 @@ export const DashboardSummaryWidget = ({ summary }: DashboardSummaryWidgetProps)
           title="Total Dairies"
           value={summary.totalDairies}
           subtitle="Active locations"
-          color="text-blue-600"
+          color="text-emerald-600"
         />
         
         <StatCard
@@ -98,7 +98,7 @@ export const DashboardSummaryWidget = ({ summary }: DashboardSummaryWidgetProps)
           title="Capacity Avg"
           value={`${summary.averageCapacityUtilization}%`}
           subtitle="Utilization"
-          color="text-purple-600"
+          color="text-teal-600"
         />
       </div>
 
@@ -109,7 +109,7 @@ export const DashboardSummaryWidget = ({ summary }: DashboardSummaryWidgetProps)
             <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-slate-600 font-medium mb-1`}>
               Monthly Volume
             </p>
-            <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-blue-700`}>
+            <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-emerald-700`}>
               {formatNumber(summary.totalMonthlyVolume)}
             </p>
             <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-slate-500`}>

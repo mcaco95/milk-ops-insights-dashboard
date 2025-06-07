@@ -51,8 +51,9 @@ export const DairyOverviewWidget = ({ barn }: DairyOverviewWidgetProps) => {
         </div>
         <div className={`${isMobile ? 'w-8 h-8' : 'w-12 h-12'} rounded-lg bg-gradient-to-br ${color.includes('red') ? 'from-red-100 to-red-200' : 
           color.includes('orange') ? 'from-orange-100 to-orange-200' :
-          color.includes('blue') ? 'from-blue-100 to-blue-200' :
-          'from-green-100 to-green-200'} flex items-center justify-center`}>
+          color.includes('emerald') ? 'from-emerald-100 to-emerald-200' :
+          color.includes('green') ? 'from-green-100 to-green-200' :
+          'from-teal-100 to-teal-200'} flex items-center justify-center`}>
           <Icon size={isMobile ? 16 : 20} className={color} />
         </div>
       </div>
@@ -68,7 +69,7 @@ export const DairyOverviewWidget = ({ barn }: DairyOverviewWidgetProps) => {
           Your Dairy Overview
         </h2>
         <div className="flex items-center space-x-2 text-sm text-slate-600">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
           <span className="font-medium">Live Updates</span>
         </div>
       </div>
@@ -79,7 +80,7 @@ export const DairyOverviewWidget = ({ barn }: DairyOverviewWidgetProps) => {
           title="Total Tanks"
           value={barn.tanks.length}
           subtitle="Active monitoring"
-          color="text-blue-600"
+          color="text-emerald-600"
         />
         
         <StatCard
@@ -104,7 +105,7 @@ export const DairyOverviewWidget = ({ barn }: DairyOverviewWidgetProps) => {
           title="Current Volume"
           value={`${formatNumber(totalVolume)}L`}
           subtitle={`of ${formatNumber(totalCapacity)}L`}
-          color="text-purple-600"
+          color="text-teal-600"
         />
       </div>
 
@@ -125,7 +126,7 @@ export const DairyOverviewWidget = ({ barn }: DairyOverviewWidgetProps) => {
                     Barn {barnNum}
                   </span>
                   <span className={`text-xs px-2 py-1 rounded-full ${
-                    barnWashNeeded > 0 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+                    barnWashNeeded > 0 ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'
                   }`}>
                     {barnTanks.length} tanks
                   </span>
@@ -137,7 +138,7 @@ export const DairyOverviewWidget = ({ barn }: DairyOverviewWidgetProps) => {
                       className={`flex-1 h-2 rounded-full ${
                         tank.washAlertStatus === 'critical' ? 'bg-red-400' :
                         tank.washAlertStatus === 'warning' ? 'bg-orange-400' :
-                        'bg-green-400'
+                        'bg-emerald-400'
                       }`}
                       title={`${tank.name}: ${tank.washAlertStatus}`}
                     />

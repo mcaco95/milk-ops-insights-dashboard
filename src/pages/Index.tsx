@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-950 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-green-950 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
+        <div className="absolute top-20 left-20 w-72 h-72 bg-emerald-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-72 h-72 bg-green-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
       </div>
 
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
@@ -20,12 +20,12 @@ const Index = () => {
           {/* Hero Section */}
           <div className="mb-8 md:mb-16 animate-fade-in">
             <div className="flex justify-center mb-6 md:mb-8">
-              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full p-6 md:p-8 shadow-2xl backdrop-blur-sm border border-blue-400/20 hover:scale-110 transition-transform duration-500">
+              <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-full p-6 md:p-8 shadow-2xl backdrop-blur-sm border border-emerald-400/20 hover:scale-110 transition-transform duration-500">
                 <Droplets className="w-12 h-12 md:w-20 md:h-20 text-white" />
               </div>
             </div>
             
-            <h1 className="text-4xl md:text-7xl font-bold bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent mb-4 md:mb-8 tracking-tight leading-tight">
+            <h1 className="text-4xl md:text-7xl font-bold bg-gradient-to-r from-white via-emerald-100 to-green-200 bg-clip-text text-transparent mb-4 md:mb-8 tracking-tight leading-tight">
               Milk Ops
             </h1>
             <p className="text-lg md:text-2xl text-slate-300 mb-2 md:mb-4 font-light">
@@ -42,9 +42,9 @@ const Index = () => {
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 md:mb-8">Built for Excellence</h2>
               
               <div className="space-y-4 md:space-y-6">
-                <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-slate-700/50 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 group">
+                <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-slate-700/50 hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 group">
                   <div className="flex items-center mb-3 md:mb-4">
-                    <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg p-2 md:p-3 mr-3 md:mr-4 group-hover:scale-110 transition-transform">
+                    <div className="bg-gradient-to-r from-emerald-500 to-green-500 rounded-lg p-2 md:p-3 mr-3 md:mr-4 group-hover:scale-110 transition-transform">
                       <BarChart3 className="w-6 h-6 md:w-8 md:h-8 text-white" />
                     </div>
                     <h3 className="text-lg md:text-xl font-semibold text-white">Smart Analytics</h3>
@@ -62,9 +62,9 @@ const Index = () => {
                   <p className="text-sm md:text-base text-slate-300">Intelligent routing system that maximizes efficiency and minimizes costs</p>
                 </div>
                 
-                <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 group">
+                <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-slate-700/50 hover:border-teal-500/50 transition-all duration-300 hover:scale-105 group">
                   <div className="flex items-center mb-3 md:mb-4">
-                    <div className="bg-gradient-to-r from-purple-500 to-violet-500 rounded-lg p-2 md:p-3 mr-3 md:mr-4 group-hover:scale-110 transition-transform">
+                    <div className="bg-gradient-to-r from-teal-500 to-emerald-500 rounded-lg p-2 md:p-3 mr-3 md:mr-4 group-hover:scale-110 transition-transform">
                       <Zap className="w-6 h-6 md:w-8 md:h-8 text-white" />
                     </div>
                     <h3 className="text-lg md:text-xl font-semibold text-white">Lightning Fast</h3>
@@ -88,9 +88,9 @@ const Index = () => {
 
             {/* Login Section */}
             <div className="animate-fade-in animation-delay-1000 px-4">
-              <div className="bg-slate-800/40 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-slate-700/50 shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
+              <div className="bg-slate-800/40 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-slate-700/50 shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500">
                 <div className="flex items-center justify-center mb-6 md:mb-8">
-                  <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl p-2 md:p-3 mr-3 md:mr-4">
+                  <div className="bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl p-2 md:p-3 mr-3 md:mr-4">
                     <LogIn className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
                   <h2 className="text-2xl md:text-3xl font-bold text-white">Welcome Back</h2>
@@ -100,7 +100,7 @@ const Index = () => {
                 <div className="space-y-4 md:space-y-6 mb-6 md:mb-8">
                   <Link 
                     to="/dashboard"
-                    className="w-full inline-flex items-center justify-center px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 group"
+                    className="w-full inline-flex items-center justify-center px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 hover:scale-105 group"
                   >
                     <Building2 className="mr-2 md:mr-3 w-5 h-5 md:w-6 md:h-6" />
                     <div className="text-left">
@@ -124,7 +124,7 @@ const Index = () => {
                 </div>
 
                 <div className="text-center border-t border-slate-700/50 pt-4 md:pt-6">
-                  <a href="#" className="text-slate-400 hover:text-blue-400 text-xs md:text-sm transition-colors">
+                  <a href="#" className="text-slate-400 hover:text-emerald-400 text-xs md:text-sm transition-colors">
                     Need help accessing your account?
                   </a>
                 </div>
