@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { DairyLayout } from '../../components/dairy/DairyLayout';
 import { Truck, Clock, Phone, MapPin } from 'lucide-react';
@@ -34,7 +33,7 @@ const fetchRouteData = async () => {
       tank: 1,
       ltNumber: "LMH32002",
       invoiceNumber: "10175358",
-      status: "completed",
+      status: "closed",
       eta: "Completed",
       trackingUrl: "https://track.example.com/LMH32002",
       driverName: "John Smith",
@@ -164,7 +163,7 @@ const RoutesPage = () => {
   }
 
   const activeRoutes = routes.filter(route => route.status === 'active');
-  const completedRoutes = routes.filter(route => route.status === 'completed');
+  const closedRoutes = routes.filter(route => route.status === 'closed');
 
   return (
     <DairyLayout>
@@ -183,10 +182,10 @@ const RoutesPage = () => {
           </div>
         )}
 
-        {completedRoutes.length > 0 && (
+        {closedRoutes.length > 0 && (
           <div>
             <h2 className="text-lg font-semibold text-slate-800 mb-4">Recent Pickups</h2>
-            {completedRoutes.map((route) => (
+            {closedRoutes.map((route) => (
               <RouteCard key={route.routeNumber} route={route} />
             ))}
           </div>
