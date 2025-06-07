@@ -32,3 +32,19 @@ export const formatDate = (dateString: string): string => {
     day: 'numeric',
   });
 };
+
+export const formatTime = (dateString: string): string => {
+  return new Date(dateString).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+export const formatMobileDateTime = (dateString: string): string => {
+  return new Date(dateString).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
