@@ -36,6 +36,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (credentials: LoginRequest) => {
     try {
+      // Check for demo mode
+      if (credentials.username === 'demo' && credentials.password === 'demo') {
+        const mockResponse: LoginResponse = {
+          token: 'demo-token-' + Date.now(),
+          dairy_name: 'Sunrise Valley Dairy',
+          dairy_id: 'demo-dairy-001',
+          expires_in: 86400 // 24 hours
+        };
+        
+        const expires_at = Date.now() + (mockResponse.expires_in * 1000);
+
+        // Store in localStorage
+        localStorage.setItem('auth_token', mockResponse.token);
+        localStorage.setItem('dairy_name', mockResponse.dairy_name);
+        localStorage.setItem('dairy_id', mockResponse.dairy_id);
+        localStorage.setItem('expires_at', expires_at.toString());
+        localStorage.setItem('demo_mode', 'true');
+
+        setUser({
+          token: mockResponse.token,
+          dairy_name: mockResponse.dairy_name,
+          dairy_id: mockResponse.dairy_id,
+          expires_at,
+        });
+        return;
+      }
+
+      // Try real API login
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -56,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem('dairy_name', data.dairy_name);
       localStorage.setItem('dairy_id', data.dairy_id);
       localStorage.setItem('expires_at', expires_at.toString());
+      localStorage.removeItem('demo_mode'); // Clear demo mode
 
       setUser({
         token: data.token,
@@ -73,6 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('dairy_name');
     localStorage.removeItem('dairy_id');
     localStorage.removeItem('expires_at');
+    localStorage.removeItem('demo_mode');
     setUser(null);
   };
 

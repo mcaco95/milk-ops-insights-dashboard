@@ -29,6 +29,18 @@ const LoginPage = () => {
     }
   };
 
+  const handleDemoLogin = async () => {
+    setIsLoading(true);
+    try {
+      await login({ username: 'demo', password: 'demo' });
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Demo login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-8 w-full max-w-md">
@@ -84,6 +96,20 @@ const LoginPage = () => {
             {isLoading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
+
+        <div className="mt-6 pt-6 border-t border-slate-200">
+          <div className="text-center mb-4">
+            <p className="text-sm text-slate-600">Try the demo</p>
+          </div>
+          <Button
+            onClick={handleDemoLogin}
+            disabled={isLoading}
+            variant="outline"
+            className="w-full h-12 border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-700 font-medium rounded-lg transition-all duration-200"
+          >
+            {isLoading ? 'Loading demo...' : 'Demo Login'}
+          </Button>
+        </div>
       </div>
     </div>
   );
