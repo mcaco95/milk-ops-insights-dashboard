@@ -61,9 +61,16 @@ const LoginPage = () => {
               </div>
             </div>
             
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-emerald-100 to-green-200 bg-clip-text text-transparent mb-4 tracking-tight leading-tight">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-emerald-100 to-green-200 bg-clip-text text-transparent mb-2 tracking-tight leading-tight">
               Milk Ops
             </h1>
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent w-16 mr-3"></div>
+              <p className="text-sm font-light text-emerald-200/80 tracking-wider uppercase">
+                by AgroTrans
+              </p>
+              <div className="h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent w-16 ml-3"></div>
+            </div>
             <p className="text-xl text-slate-300 mb-2 font-light">
               Dairy Dashboard Login
             </p>
