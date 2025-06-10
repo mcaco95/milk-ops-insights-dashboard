@@ -1,0 +1,233 @@
+Fetching all locations (dairies, processors) from Samsara...
+Successfully loaded 45 locations.
+
+Processing LT#: DDV87990 for 'Milky Way Dairy (633)' (Tank: 6, Truck: 403)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: WLX41596 for 'Triple G Dairy' (Tank: 2, Truck: 416)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: UPA21764 for 'T&K' (Tank: 5, Truck: 402)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: SCY62262 for 'Milky Way Dairy (633)' (Tank: 2, Truck: 427)
+  - Geofence Status: 'Arrived'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: BGM20161 for 'Piazzo Dairy (800)' (Tank: 1, Truck: 417)
+  - Geofence Status: 'Arrived'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: XNY09590 for 'Dickman and Sons Dairy (815)' (Tank: 1, Truck: 417)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: QAV47708 for 'Triple G Dairy' (Tank: 1, Truck: 416)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: FYO90128 for 'Milky Way Dairy (633)' (Tank: 1, Truck: 422)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: FJZ26147 for 'Milky Way Dairy (633)' (Tank: 3, Truck: 414)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: SBH22671 for 'Milky Way Dairy (633)' (Tank: 4, Truck: 421)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: IBW54275 for 'Piazzo Dairy (800)' (Tank: 2, Truck: 404)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: OQP54843 for 'T&K' (Tank: 9, Truck: 422)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: LAR27727 for 'D&I Dairy (805)' (Tank: 2, Truck: 411)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: UBS72153 for 'T&K' (Tank: 3, Truck: 422)
+  - Geofence Status: 'Arrived'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: NUV91847 for 'Triple G Dairy' (Tank: 3, Truck: 402)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: UVO99422 for 'T&K' (Tank: 4, Truck: 403)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: LPA76154 for 'Milky Way Dairy (633)' (Tank: 1, Truck: 422)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: MQV09556 for 'T&K' (Tank: 4, Truck: 416)
+  - Geofence Status: 'Arrived'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: VQC41981 for 'T&K' (Tank: 4, Truck: 423)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: YVU43024 for 'D&I Holsteins (716)' (Tank: 1, Truck: 402)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: TQO06035 for 'T&K' (Tank: 6, Truck: 401)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: JXA39612 for 'T&K' (Tank: 7, Truck: 425)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: WHI29646 for 'T&K' (Tank: 2, Truck: 404)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: KLX97733 for 'Triple G Dairy' (Tank: 3, Truck: 416)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: EEJ03374 for 'Piazzo Dairy (800)' (Tank: 2, Truck: 411)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: SDQ76850 for 'Dickman and Sons Dairy (815)' (Tank: 3, Truck: 417)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: CXT83687 for 'T&K' (Tank: 9, Truck: 427)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: CGU46843 for 'Arizona Dairy' (Tank: 2, Truck: 425)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: BAE95504 for 'Milky Way Dairy (633)' (Tank: 2, Truck: 427)
+  - Geofence Status: 'Arrived'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: REG41293 for 'Triple G Dairy' (Tank: 1, Truck: 403)
+  - Geofence Status: 'Arrived'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: JQQ02287 for 'T&K' (Tank: 5, Truck: 403)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: REC82818 for 'Milky Way Dairy (633)' (Tank: 5, Truck: 419)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: BRL25398 for 'Dickman and Sons Dairy (815)' (Tank: 1, Truck: 420)
+  - Geofence Status: 'Arrived'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: XSB49999 for 'Milky Way Dairy (633)' (Tank: 4, Truck: 414)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: IBG41602 for 'T&K' (Tank: 4, Truck: 423)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: UBH20287 for 'D&I Holsteins (716)' (Tank: 2, Truck: 414)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: CUQ68494 for 'Milky Way Dairy (633)' (Tank: 4, Truck: 402)
+  - Geofence Status: 'Arrived'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: NWO24112 for 'T&K' (Tank: 4, Truck: 404)
+  - Geofence Status: 'Arrived'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: PCZ32819 for 'T&K' (Tank: 1, Truck: 404)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: XAS86898 for 'Arizona Dairy' (Tank: 1, Truck: 417)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: QLV62002 for 'Dickman and Sons Dairy (815)' (Tank: 2, Truck: 419)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: ZVZ79964 for 'Legendairy LLC' (Tank: 1, Truck: 414)
+  - Geofence Status: 'Arrived'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: MYF43626 for 'Arizona Dairy' (Tank: 1, Truck: 416)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: PZB23654 for 'T&K' (Tank: 9, Truck: 411)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+Processing LT#: ICT56270 for 'T&K' (Tank: 2, Truck: 417)
+  - Geofence Status: 'Completed'
+  - Skipping ETA calculation (Status is not 'En Route').
+
+--- All Daily Routes on 2025-06-07 ---
+   Start Time Route                         Dairy Tank                   Processor     Status  ETA Speed Truck #               Driver
+0       00:07   333                 Arizona Dairy    1                    Fairlife  Completed  N/A   N/A     417         Greer James 
+1       00:23   138                           T&K    1  Casa Grande Dairy Products  Completed  N/A   N/A     404        Roberts Kirk 
+2       02:49    10         Milky Way Dairy (633)    4                         TBD    Arrived  N/A   N/A     402         Adams Erick 
+3       02:55   139                           T&K    4                         TBD    Arrived  N/A   N/A     404        Roberts Kirk 
+4       02:55     9         Milky Way Dairy (633)    2                         TBD    Arrived  N/A   N/A     427        Holbrook Dax 
+5       03:19    76  Dickman and Sons Dairy (815)    1                         TBD    Arrived  N/A   N/A     420       Tarazon Robert
+6       03:32   137                           T&K    3                         TBD    Arrived  N/A   N/A     422   Marsh Christopher 
+7       03:40    42                Legendairy LLC    1                         TBD    Arrived  N/A   N/A     414        Merino Angel 
+8       03:46   340            Piazzo Dairy (800)    1                         TBD    Arrived  N/A   N/A     417         Greer James 
+9       04:05   140                           T&K    4                         TBD    Arrived  N/A   N/A     416       Anderson John 
+10      04:46    43                Triple G Dairy    1                         TBD    Arrived  N/A   N/A     403          Mosley John
+11      07:30     3         Milky Way Dairy (633)    3                         UDA  Completed  N/A   N/A     414      Canady LeSabre 
+12      07:32   143                           T&K    4                     Safeway  Completed  N/A   N/A     423       Anderson John 
+13      08:01    45                Triple G Dairy    2                    Fairlife  Completed  N/A   N/A     416       Brooks Jarrod 
+14      08:03    79  Dickman and Sons Dairy (815)    1                    Fairlife  Completed  N/A   N/A     417        Lopez Robert 
+15      09:15   144                           T&K    9                         UDA  Completed  N/A   N/A     411          Mosley John
+16      09:18   145                           T&K    4                         UDA  Completed  N/A   N/A     403        Holbrook Dax 
+17      09:23   128                           T&K    2                         UDA  Completed  N/A   N/A     404         Ellison Adam
+18      10:19   330                 Arizona Dairy    2                    Fairlife  Completed  N/A   N/A     425   Marsh Christopher 
+19      10:26     1         Milky Way Dairy (633)    4                    Fairlife  Completed  N/A   N/A     421       Tarazon Robert
+20      10:30     2         Milky Way Dairy (633)    1                    Fairlife  Completed  N/A   N/A     422  Morrison Reginald L
+21      11:32    90           D&I Holsteins (716)    1                    Fairlife  Completed  N/A   N/A     402        Pearson Jason
+22      12:06    47                Triple G Dairy    3                    Fairlife  Completed  N/A   N/A     416       Brooks Jarrod 
+23      12:09    74  Dickman and Sons Dairy (815)    2                    Fairlife  Completed  N/A   N/A     419    Cerezo Johnathan 
+24      12:27   182                           T&K    4                         UDA  Completed  N/A   N/A     423       Anderson John 
+25      13:09   184                           T&K    2                         UDA  Completed  N/A   N/A     417        Lopez Robert 
+26      14:41   183                           T&K    9                         UDA  Completed  N/A   N/A     427         Allen Shane 
+27      15:47   125                           T&K    6                         UDA  Completed  N/A   N/A     401      Shields Johnny 
+28      15:50    14         Milky Way Dairy (633)    1                         UDA  Completed  N/A   N/A     422       Torrez Modesto
+29      15:52   341            Piazzo Dairy (800)    2                   Schreiber  Completed  N/A   N/A     404         Ellison Adam
+30      16:17     8         Milky Way Dairy (633)    4                         UDA  Completed  N/A   N/A     414        Merino Angel 
+31      16:38    41                Triple G Dairy    3                    Fairlife  Completed  N/A   N/A     402        Pearson Jason
+32      16:59    36               D&I Dairy (805)    2                    Fairlife  Completed  N/A   N/A     411       Valdes Joseph 
+33      18:01   331                 Arizona Dairy    1                    Fairlife  Completed  N/A   N/A     416          Vick Randy 
+34      18:28    75  Dickman and Sons Dairy (815)    3                    Fairlife  Completed  N/A   N/A     417         Greer James 
+35      18:29   127                           T&K    5                         UDA  Completed  N/A   N/A     403         Allen Shane 
+36      18:48     7         Milky Way Dairy (633)    5                   Schreiber  Completed  N/A   N/A     419    Cerezo Johnathan 
+37      19:41     4         Milky Way Dairy (633)    2                         TBD    Arrived  N/A   N/A     427      Shields Johnny 
+38      20:20   126                           T&K    9                         UDA  Completed  N/A   N/A     422       Torrez Modesto
+39      21:57    91           D&I Holsteins (716)    2                    Fairlife  Completed  N/A   N/A     414        Merino Angel 
+40      22:19    44                Triple G Dairy    1                    Fairlife  Completed  N/A   N/A     416          Vick Randy 
+41      22:39   132                           T&K    5                         UDA  Completed  N/A   N/A     402         Adams Erick 
+42      23:39   342            Piazzo Dairy (800)    2                   Schreiber  Completed  N/A   N/A     411       Valdes Joseph 
+43      23:40   141                           T&K    7                         UDA  Completed  N/A   N/A     425      Shields Johnny 
+44      23:48    13         Milky Way Dairy (633)    6                   Schreiber  Completed  N/A   N/A     403         Allen Shane 
+
+-------------------------------------------------
+

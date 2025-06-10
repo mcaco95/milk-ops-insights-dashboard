@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 31012662
+      POSTGRES_DB: dairy_operations
+      TZ: America/Denver
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/00_init_core_tables.sql:/docker-entrypoint-initdb.d/00_init_core_tables.sql
+      - ./database/01_init_data_tables.sql:/docker-entrypoint-initdb.d/01_init_data_tables.sql
+      - ./database/02_seed_data.sql:/docker-entrypoint-initdb.d/02_seed_data.sql
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: always
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dairy_operations
+      DB_USER: postgres
+      DB_PASSWORD: 31012662
+      SECRET_KEY: your-super-secret-key-change-in-production
+      TZ: America/Denver
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ./scripts:/app/scripts
+      - .:/app/project_root
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  scheduler:
+    build: 
+      context: .
+      dockerfile: Dockerfile.scheduler
+    restart: always
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dairy_operations
+      DB_USER: postgres
+      DB_PASSWORD: 31012662
+      TZ: America/Denver
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/app/scripts
+      - .:/app/project_root
+      - scheduler_logs:/var/log
+      - /etc/localtime:/etc/localtime:ro
+    command: python /app/scripts/scheduler.py
+
+  frontend:
+    build: ./milk-ops-insights-dashboard
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - TZ=America/Denver
+    volumes:
+      - ./milk-ops-insights-dashboard:/app
+      - /app/node_modules
+      - /etc/localtime:/etc/localtime:ro
+
+volumes:
+  postgres_data:
+  scheduler_logs: 

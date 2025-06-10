@@ -1,0 +1,11 @@
+requests
+pandas
+sqlalchemy
+fastapi
+uvicorn
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+redis
+schedule
+psycopg2-binary 
