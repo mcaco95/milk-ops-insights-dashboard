@@ -3,7 +3,7 @@
 Data Population Scheduler
 Runs the data population scripts at appropriate intervals:
 - Tank data: Every 10 minutes
-- Route data: Every hour (and daily for new dates)
+- Route data: Every 15 minutes (INCREASED FREQUENCY for real-time tracking)
 - Volume data: Daily (and monthly for new months)
 """
 
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # Script paths
 SCRIPT_DIR = Path(__file__).parent
 TANK_SCRIPT = SCRIPT_DIR / "populate_tanks_data.py"
-ROUTES_SCRIPT = SCRIPT_DIR / "populate_routes_data.py"
+ROUTES_SCRIPT = SCRIPT_DIR / "populate_routes_data.py"  # THIS NOW USES THE NEW WORKING LOGIC!
 VOLUMES_SCRIPT = SCRIPT_DIR / "populate_volumes_data.py"
 
 def run_script(script_path, args=None):
@@ -41,7 +41,7 @@ def run_script(script_path, args=None):
             cmd.extend(args)
         
         logger.info(f"Running: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)  # Increased timeout to 10 minutes
         
         if result.returncode == 0:
             logger.info(f"Success: {script_path.name}")
@@ -53,7 +53,7 @@ def run_script(script_path, args=None):
                 logger.error(f"Error: {result.stderr.strip()}")
                 
     except subprocess.TimeoutExpired:
-        logger.error(f"Timeout: {script_path.name} took longer than 5 minutes")
+        logger.error(f"Timeout: {script_path.name} took longer than 10 minutes")
     except Exception as e:
         logger.error(f"Exception running {script_path.name}: {str(e)}")
 
@@ -63,8 +63,8 @@ def populate_tank_data():
     run_script(TANK_SCRIPT)
 
 def populate_route_data():
-    """Populate route data for today - runs every hour"""
-    logger.info("Starting route data population...")
+    """Populate route data for today - runs every 3 minutes for REAL-TIME tracking"""
+    logger.info("Starting REAL-TIME route data population (using proven debug logic)...")
     run_script(ROUTES_SCRIPT)
 
 def populate_volume_data():
@@ -93,8 +93,8 @@ def setup_schedule():
     # Tank data - every 10 minutes
     schedule.every(10).minutes.do(populate_tank_data)
     
-    # Route data - every hour
-    schedule.every().hour.do(populate_route_data)
+    # Route data - EVERY 3 MINUTES for real-time tracking (using new working script!)
+    schedule.every(3).minutes.do(populate_route_data)
     
     # Volume data - daily at 2 AM
     schedule.every().day.at("02:00").do(populate_volume_data)
@@ -107,7 +107,7 @@ def setup_schedule():
     
     logger.info("Schedule setup complete:")
     logger.info("- Tank data: Every 10 minutes")
-    logger.info("- Route data: Every hour")
+    logger.info("- Route data: Every 3 minutes (REAL-TIME with proven debug logic!)")
     logger.info("- Volume data: Daily at 2:00 AM")
     logger.info("- Historical routes: Daily at 3:00 AM")
     logger.info("- Historical volumes: Weekly (Monday) at 4:00 AM")
@@ -129,7 +129,7 @@ def run_initial_population():
 
 def main():
     """Main scheduler loop"""
-    logger.info("Starting Data Population Scheduler...")
+    logger.info("Starting Data Population Scheduler with NEW WORKING ROUTES LOGIC...")
     
     # Run initial population
     run_initial_population()

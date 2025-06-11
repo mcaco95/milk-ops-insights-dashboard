@@ -240,20 +240,34 @@ async def get_routes(
         route_entries = []
         for i, row in enumerate(routes_data):
             route_entries.append(RouteData(
-                id=i + 1,  # Simple sequential ID
-                route_number=row.samsara_route_id or f"R{i+1:03d}",
+                id=str(row.id),  # Use actual UUID
+                dairy_id=row.dairy_id,
+                samsara_route_id=row.samsara_route_id,
+                samsara_route_name=getattr(row, 'samsara_route_name', None),  # ENHANCED: Full route name
+                report_date=row.report_date,
                 driver_name=row.driver_name,
                 truck_id=row.truck_id,
                 status=row.status,
-                estimated_arrival=row.estimated_arrival.strftime("%H:%M") if row.estimated_arrival else "N/A",
-                start_date=row.start_date.strftime("%Y-%m-%d %H:%M") if row.start_date else "N/A",
+                
+                # ENHANCED: Separate timestamp fields
+                depot_departure_time=getattr(row, 'depot_departure_time', None),
+                dairy_arrival_time=getattr(row, 'dairy_arrival_time', None),
+                dairy_departure_time=getattr(row, 'dairy_departure_time', None),
+                estimated_eta=getattr(row, 'estimated_eta', None),
+                
+                # Legacy fields (for backwards compatibility)
+                estimated_arrival=row.estimated_arrival,
+                start_date=row.start_date,
+                
                 route=row.route,
                 dairy_name=row.dairy_name,
                 tank=row.tank,
+                samsara_tank=row.samsara_tank,  # Tank info from Samsara
                 processor=row.processor,
                 lt_number=row.lt_number,
                 fairlife_number=row.fairlife_number,
-                tracking_link=row.tracking_link
+                tracking_link=row.tracking_link,
+                last_updated=row.last_updated
             ))
         
         logger.info(f"Routes data served for dairy {dairy_id}, date {parsed_date}")

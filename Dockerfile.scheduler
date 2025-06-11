@@ -15,10 +15,8 @@ WORKDIR /app
 # Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
-# Copy the scripts and modules
-COPY scripts/ /app/scripts/
+# Copy only the core scripts needed (scripts directory is mounted as volume)
 COPY tank_level_dashboard.py /app/
-COPY get_daily_routes.py /app/
 COPY get_dairy_volume.py /app/
 
 # Create log directory

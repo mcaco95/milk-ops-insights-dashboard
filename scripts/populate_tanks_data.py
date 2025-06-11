@@ -107,7 +107,7 @@ def populate_tanks_data():
                         if current_volume < 5000 and previous_volume >= 5000:
                             new_wash_started_at = datetime.utcnow()
                         # Timer keeps running regardless of volume until next wash cycle
-
+                        
                         # Legacy wash flag, can be removed later
                         is_washing = new_wash_started_at is not None
 

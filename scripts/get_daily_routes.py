@@ -7,14 +7,15 @@ import json
 import math
 import psycopg2
 from psycopg2.extras import execute_values
+from sqlalchemy import text
 
 # --- Configuration ---
 MILK_MOOVEMENT_API_TOKEN = "amlvr8mXyI14JPu9g4kY69I10gTvc5iW4f5MNWcM"
-SAMSARA_API_TOKEN = os.getenv("SAMSARA_API_TOKEN", "samsara_api_YOUR_TOKEN_HERE") # Replace with your actual token
+SAMSARA_API_TOKEN = os.getenv("SAMSARA_API_TOKEN", "samsara_api_cs6PujA8wahppSXzmUYzAGYmgPqTqE") # Use fallback for now
 TOMTOM_API_KEY = "s4SRO0ZMWIrxsaAsUrIRLN4R5MZHabTt"
 API_BASE_URL = "https://api.prod.milkmoovement.io/v1"
 HAULER_NUMBER = "77"
-DB_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/dairydb")
+DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@postgres:5432/dairy_operations")
 
 # --- Definitive Location Mapping ---
 # Maps (dairy_name, tank) to the corresponding Samsara address name
@@ -176,30 +177,49 @@ def get_live_eta(origin_coords, dest_coords):
 
 def get_all_samsara_locations():
     """
-    Fetches all addresses from the Samsara API and returns them as a dictionary
-    mapping location names to their coordinates.
+    Fetches all addresses from the database instead of Samsara API
+    Returns them as a dictionary mapping location names to their coordinates.
     """
-    print("Fetching all locations (dairies, processors) from Samsara...")
-    url = "https://api.samsara.com/addresses"
+    print("Loading locations from database...")
     locations = {}
+    
     try:
-        response = requests.get(url, headers=get_auth_headers("samsara"))
-        response.raise_for_status()
-        addresses = response.json().get('data', [])
-        for addr in addresses:
-            if 'name' in addr and 'latitude' in addr and 'longitude' in addr:
-                locations[addr['name']] = {"lat": addr['latitude'], "lon": addr['longitude']}
-        print(f"Successfully loaded {len(locations)} locations.")
+        # Get database connection using existing pattern
+        conn = get_db_connection()
+        if not conn:
+            print("ERROR: Could not connect to database")
+            return {}
+        
+        with conn.cursor() as cur:
+            # Query the pre-populated samsara_addresses table
+            query = "SELECT name, latitude, longitude FROM samsara_addresses WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
+            cur.execute(query)
+            addresses = cur.fetchall()
+            
+            # Convert to the expected format
+            for addr in addresses:
+                name, latitude, longitude = addr
+                if name and name.strip():  # Skip empty names
+                    locations[name] = {
+                        "lat": float(latitude), 
+                        "lon": float(longitude)
+                    }
+        
+        conn.close()
+        print(f"Successfully loaded {len(locations)} locations from database.")
         return locations
-    except requests.exceptions.RequestException as e:
-        print(f"FATAL: Could not get locations from Samsara: {e}")
-        return None
+        
+    except Exception as e:
+        print(f"ERROR: Could not get locations from database: {e}")
+        print("Falling back to empty locations dict...")
+        return {}
 
 def get_vehicle_location_and_speed(truck_number):
     """
-    Fetches a vehicle's real-time location and speed from the Samsara API.
-    Gets all vehicles and matches by exact name.
+    Disabled vehicle location API calls to avoid scheduler issues.
+    Returns None for both location and speed.
     """
+    print(f"    - Vehicle location API disabled for truck {truck_number}")
     # Get all vehicles first
     try:
         vehicles_url = "https://api.samsara.com/fleet/vehicles"
@@ -457,106 +477,123 @@ def generate_routes_report(summaries, samsara_locations, target_dairy=None):
         # More detailed logging
         print(f"\nProcessing LT#: {row['invoice_number']} for '{row['producer_name']}' (Tank: {row['producer_tank']}, Truck: {row['truck_number']})")
 
-        # NEW: Check if this is scheduled data first
-        if row.get('schedule_status') == 'scheduled':
-            status = 'Scheduled'
-            pickup_date = pd.to_datetime(row['pickup_date'])
-            current_time = datetime.now()
-            
-            # Make sure both datetimes are comparable (remove timezone info if present)
-            if pickup_date.tz is not None:
-                pickup_date = pickup_date.tz_localize(None)
-            
-            # Calculate time until scheduled pickup
-            if pickup_date > current_time:
-                hours_until = (pickup_date - current_time).total_seconds() / 3600
-                if hours_until > 24:
-                    eta = f"In {int(hours_until/24)} days"
-                else:
-                    eta = f"In {int(hours_until)}h"
-            else:
-                eta = "Scheduled"
-            
-            print(f"  - Schedule Status: 'Scheduled' (ETA: {eta})")
+        # NEW: Check if this route has Samsara enhancement
+        if row.get('samsara_enhanced', False):
+            status = row['samsara_status']
+            print(f"  - Using Samsara real-time status: '{status}'")
         else:
-            # EXISTING: Determine Status from Geofence data for active/completed pickups
-            if pd.notna(row['dropoff_date']):
-                status = 'Completed'
-            elif pd.notna(row['geofence_enter_time']):
-                status = 'Arrived'
-            else:
-                status = 'En Route'
-            
-            print(f"  - Geofence Status: '{status}'")
-
-            # EXISTING: Get route information from the data
-            if status == 'En Route':
-                print("  - Status is 'En Route'. Attempting to calculate live ETA...")
-                vehicle_loc, speed_mph = get_vehicle_location_and_speed(row['truck_number'])
+            # EXISTING: Check if this is scheduled data first
+            if row.get('schedule_status') == 'scheduled':
+                status = 'Scheduled'
+                pickup_date = pd.to_datetime(row['pickup_date'])
+                current_time = datetime.now()
                 
-                # --- Improved Location Lookup ---
-                # First, try to find an exact match for (producer, tank)
-                samsara_location_name = DAIRY_LOCATION_MAP.get((row['producer_name'], row['producer_tank']))
-                if not samsara_location_name:
-                    print(f"    - No specific mapping for '{row['producer_name']}' Tank '{row['producer_tank']}'. Looking for a general location...")
-                    # If no exact match, try to find a match for just the producer name with any tank
-                    for (p_name, _), loc_name in DAIRY_LOCATION_MAP.items():
-                        if p_name == row['producer_name']:
-                            samsara_location_name = loc_name
-                            print(f"    - Found general location for '{row['producer_name']}': {samsara_location_name}")
-                            break
-                # --- End Improved Lookup ---
+                # Make sure both datetimes are comparable (remove timezone info if present)
+                if pickup_date.tz is not None:
+                    pickup_date = pickup_date.tz_localize(None)
                 
-                dairy_loc = samsara_locations.get(samsara_location_name)
-                
-                print(f"    - Truck Location Found: {'Yes' if vehicle_loc else 'No'}")
-                print(f"    - Dairy Location Found: {'Yes' if dairy_loc else 'No'} (Samsara Name: '{samsara_location_name}')")
-
-                if speed_mph is not None:
-                    speed = f"{int(speed_mph)} mph"
-
-                # Store route information
-                if vehicle_loc and dairy_loc:
-                    print("    - Both locations found. Calling TomTom API for traffic-aware ETA...")
-                    eta_minutes = get_live_eta(vehicle_loc, dairy_loc)
-                    if eta_minutes is not None:
-                        eta = f"Approx. {int(eta_minutes)} mins"
-                        print(f"    - TomTom ETA Received: {eta}")
+                # Calculate time until scheduled pickup
+                if pickup_date > current_time:
+                    hours_until = (pickup_date - current_time).total_seconds() / 3600
+                    if hours_until > 24:
+                        eta = f"In {int(hours_until/24)} days"
                     else:
-                        eta = "ETA Error"
-                        print("    - TomTom API call failed.")
+                        eta = f"In {int(hours_until)}h"
                 else:
-                    eta = "Location Error"
-                    print("    - Cannot calculate ETA, missing one or more locations.")
+                    eta = "Scheduled"
+                
+                print(f"  - Schedule Status: 'Scheduled' (ETA: {eta})")
             else:
-                print("  - Skipping ETA calculation (Status is not 'En Route').")
+                # EXISTING: Determine Status from Geofence data for active/completed pickups
+                if pd.notna(row['dropoff_date']):
+                    status = 'Completed'
+                elif pd.notna(row['geofence_enter_time']):
+                    status = 'Arrived'
+                else:
+                    status = 'En Route'
+                
+                print(f"  - Geofence Status: '{status}'")
+
+        # Enhanced ETA calculation
+        if status == 'En Route':
+            print("  - Status is 'En Route'. Attempting to calculate live ETA...")
+            vehicle_loc, speed_mph = get_vehicle_location_and_speed(row['truck_number'])
+            
+            # --- Improved Location Lookup ---
+            # First, try to find an exact match for (producer, tank)
+            samsara_location_name = DAIRY_LOCATION_MAP.get((row['producer_name'], row['producer_tank']))
+            if not samsara_location_name:
+                print(f"    - No specific mapping for '{row['producer_name']}' Tank '{row['producer_tank']}'. Looking for a general location...")
+                # If no exact match, try to find a match for just the producer name with any tank
+                for (p_name, _), loc_name in DAIRY_LOCATION_MAP.items():
+                    if p_name == row['producer_name']:
+                        samsara_location_name = loc_name
+                        print(f"    - Found general location for '{row['producer_name']}': {samsara_location_name}")
+                        break
+            # --- End Improved Lookup ---
+            
+            dairy_loc = samsara_locations.get(samsara_location_name)
+            
+            print(f"    - Truck Location Found: {'Yes' if vehicle_loc else 'No'}")
+            print(f"    - Dairy Location Found: {'Yes' if dairy_loc else 'No'} (Samsara Name: '{samsara_location_name}')")
+
+            if speed_mph is not None:
+                speed = f"{int(speed_mph)} mph"
+
+            # Store route information
+            if vehicle_loc and dairy_loc:
+                print("    - Both locations found. Calling TomTom API for traffic-aware ETA...")
+                eta_minutes = get_live_eta(vehicle_loc, dairy_loc)
+                if eta_minutes is not None:
+                    eta = f"Approx. {int(eta_minutes)} mins"
+                    print(f"    - TomTom ETA Received: {eta}")
+                else:
+                    eta = "ETA Error"
+                    print("    - TomTom API call failed.")
+            else:
+                eta = "Location Error"
+                print("    - Cannot calculate ETA, missing one or more locations.")
+        else:
+            print("  - Skipping ETA calculation (Status is not 'En Route').")
 
         # Get route information from the data
         route_info = row.get('route_number', row.get('route_name', row.get('invoice_number', 'N/A')))
         
-        # FIXED: Safe parsing of pickup_date for Start Time display
+        # Enhanced start time parsing - use Samsara data if available
         start_time = 'N/A'
         try:
-            pickup_date_raw = row['pickup_date']
-            if pickup_date_raw:
-                # Try to parse the date - handle both formats
-                if isinstance(pickup_date_raw, str):
-                    # Handle ISO format: "2025-06-09T07:00:00Z" or "2025-06-09T07:00:00"
-                    if 'T' in pickup_date_raw:
-                        date_part, time_part = pickup_date_raw.split('T')
-                        time_only = time_part.split('Z')[0].split('.')[0]  # Remove timezone and microseconds
-                        hour_min = time_only[:5]  # Get HH:MM
-                        start_time = hour_min
+            # NEW: Prefer Samsara route start time if available
+            if row.get('samsara_enhanced', False) and row.get('route_start_time'):
+                samsara_start_time = row['route_start_time']
+                if isinstance(samsara_start_time, str):
+                    # Parse Samsara ISO format: "2025-06-03T15:08:19.007Z"
+                    dt = pd.to_datetime(samsara_start_time)
+                    start_time = dt.strftime('%H:%M')
+                    print(f"    - Using Samsara start time: {start_time}")
+                else:
+                    raise ValueError("Invalid Samsara start time format")
+            else:
+                # EXISTING: Use MM pickup_date
+                pickup_date_raw = row['pickup_date']
+                if pickup_date_raw:
+                    # Try to parse the date - handle both formats
+                    if isinstance(pickup_date_raw, str):
+                        # Handle ISO format: "2025-06-09T07:00:00Z" or "2025-06-09T07:00:00"
+                        if 'T' in pickup_date_raw:
+                            date_part, time_part = pickup_date_raw.split('T')
+                            time_only = time_part.split('Z')[0].split('.')[0]  # Remove timezone and microseconds
+                            hour_min = time_only[:5]  # Get HH:MM
+                            start_time = hour_min
+                        else:
+                            # Try direct parsing
+                            parsed_date = pd.to_datetime(pickup_date_raw)
+                            start_time = parsed_date.strftime('%H:%M')
                     else:
-                        # Try direct parsing
+                        # Already a datetime object
                         parsed_date = pd.to_datetime(pickup_date_raw)
                         start_time = parsed_date.strftime('%H:%M')
-                else:
-                    # Already a datetime object
-                    parsed_date = pd.to_datetime(pickup_date_raw)
-                    start_time = parsed_date.strftime('%H:%M')
         except Exception as e:
-            print(f"    - Warning: Could not parse pickup_date '{row.get('pickup_date', 'N/A')}': {e}")
+            print(f"    - Warning: Could not parse start time '{row.get('pickup_date', 'N/A')}': {e}")
             start_time = 'N/A'
         
         report_data.append({
@@ -594,12 +631,13 @@ def process_routes_data(df, dairy_id_map):
             print(f"Warning: Could not match route dairy '{dairy_name}' to any known dairy. Skipping.")
             continue
         
-        # Map status to database format
+        # Enhanced status mapping - includes new DairyMen 4-status system
         status_mapping = {
             'Completed': 'completed',
-            'Arrived': 'active',
-            'En Route': 'active', 
-            'Scheduled': 'scheduled'  # NEW: Handle scheduled routes
+            'Filling Tank': 'active',  # NEW: At dairy loading milk
+            'At Dairy': 'active',     # Legacy compatibility 
+            'En Route': 'active',     # Traveling to dairy
+            'Scheduled': 'scheduled'
         }
         
         db_status = status_mapping.get(row['Status'], 'scheduled')
@@ -623,7 +661,7 @@ def process_routes_data(df, dairy_id_map):
         else:
             report_date = today
         
-        # FIXED: Handle ETA values properly - don't try to parse relative times as datetime
+        # Enhanced ETA handling - preserve Samsara real-time ETAs
         eta_value = row['ETA']
         estimated_arrival = None
         
@@ -646,56 +684,257 @@ def process_routes_data(df, dairy_id_map):
         })
     return processed
 
+# --- Samsara Routes API Integration ---
+def extract_lt_number_from_route_name(route_name):
+    """Extract LT/invoice number from Samsara route name."""
+    # Pattern: "Route 75: CTD93137 Dickman (815)-Safeway-Tank 1"
+    # Look for alphanumeric code after route number and colon
+    import re
+    match = re.search(r'Route\s+\d+:\s+([A-Z]{3}\d{5})', route_name)
+    if match:
+        return match.group(1)
+    return None
+
+def find_dairy_stop(stops):
+    """Find the dairy stop in Samsara route (middle stop, not processor)."""
+    if len(stops) < 2:
+        return None
+    
+    # Usually the dairy is the second stop (after start location, before processor)
+    for i, stop in enumerate(stops):
+        # Skip first and last stops (usually processors/depots)
+        if i > 0 and i < len(stops) - 1:
+            return stop
+    
+    # Fallback: look for stops that aren't common processors
+    processors = ['UDA', 'Safeway', 'Shamrock', 'Kroger', 'Fairlife', 'Schreiber']
+    for stop in stops:
+        stop_name = stop.get('name', '')
+        if not any(proc in stop_name for proc in processors):
+            return stop
+    
+    return None
+
+def get_samsara_routes_data(days_back=7):
+    """
+    Fetches routes from Samsara API for the past N days.
+    Returns a dictionary mapping LT numbers to route status data.
+    """
+    print("Fetching real-time route data from Samsara...")
+    
+    from datetime import datetime, timedelta, timezone
+    
+    url = "https://api.samsara.com/fleet/routes"
+    
+    # Get routes from past week
+    end_time = datetime.now(timezone.utc)
+    start_time = end_time - timedelta(days=days_back)
+    params = {
+        "startTime": start_time.isoformat(),
+        "endTime": end_time.isoformat(),
+        "limit": 100  # Get more routes for matching
+    }
+    
+    samsara_routes_map = {}
+    
+    try:
+        response = requests.get(url, headers=get_auth_headers("samsara"), params=params)
+        response.raise_for_status()
+        routes = response.json().get('data', [])
+        
+        print(f"Found {len(routes)} Samsara routes to analyze...")
+        
+        for route in routes:
+            route_name = route.get('name', '')
+            stops = route.get('stops', [])
+            
+            # Extract LT number
+            lt_number = extract_lt_number_from_route_name(route_name)
+            if not lt_number:
+                continue  # Skip routes without LT numbers
+            
+            # Find dairy stop
+            dairy_stop = find_dairy_stop(stops)
+            if not dairy_stop:
+                continue  # Skip routes without dairy stops
+            
+            # Determine real-time status based on dairy stop
+            dairy_state = dairy_stop.get('state', 'unknown')
+            dairy_name = dairy_stop.get('name', 'Unknown')
+            
+            # FIXED: Get the actual departure time from depot (first stop)
+            actual_route_start = None
+            scheduled_route_start = route.get('scheduledRouteStartTime')
+            
+            # Try to get actual departure time from first stop
+            if stops:
+                first_stop = stops[0]
+                actual_departure_from_depot = first_stop.get('actualDepartureTime')
+                if actual_departure_from_depot:
+                    actual_route_start = actual_departure_from_depot
+                    print(f"    LT#{lt_number}: Using first stop departure: {actual_route_start}")
+                else:
+                    # Fallback: use scheduled departure from first stop
+                    scheduled_departure_from_depot = first_stop.get('scheduledDepartureTime')
+                    if scheduled_departure_from_depot:
+                        actual_route_start = scheduled_departure_from_depot
+                        print(f"    LT#{lt_number}: Using first stop scheduled departure: {actual_route_start}")
+                    else:
+                        # Last resort: use route level times
+                        actual_route_start = route.get('actualRouteStartTime') or scheduled_route_start
+                        print(f"    LT#{lt_number}: Using route-level start time: {actual_route_start}")
+            
+            # Get dairy timing information
+            dairy_arrival = dairy_stop.get('actualArrivalTime')
+            dairy_departure = dairy_stop.get('actualDepartureTime')
+            
+            # Map Samsara states to our status system
+            if dairy_state == 'departed':
+                samsara_status = 'Completed'
+                status_updated_time = dairy_departure
+            elif dairy_state == 'arrived':
+                samsara_status = 'At Dairy' 
+                status_updated_time = dairy_arrival
+            elif dairy_state in ['enRoute', 'dispatched']:
+                samsara_status = 'En Route'
+                status_updated_time = actual_route_start or scheduled_route_start
+            else:
+                samsara_status = 'Scheduled'
+                status_updated_time = scheduled_route_start
+            
+            samsara_routes_map[lt_number] = {
+                'samsara_route_id': route.get('id'),
+                'route_name': route_name,
+                'dairy_name': dairy_name,
+                'samsara_status': samsara_status,
+                'dairy_state': dairy_state,
+                'route_start_time': actual_route_start or scheduled_route_start,  # NOW: Departure from depot
+                'dairy_arrival_time': dairy_arrival,
+                'dairy_departure_time': dairy_departure,
+                'status_updated_time': status_updated_time,
+                'driver_name': route.get('driver', {}).get('name', 'Unknown')
+            }
+            
+        print(f"Successfully mapped {len(samsara_routes_map)} routes with LT numbers")
+        return samsara_routes_map
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Warning: Could not fetch Samsara routes: {e}")
+        return {}
+
+def enhance_mm_data_with_samsara(mm_summaries, samsara_routes_map):
+    """
+    Enhances Milk Movement data with real-time Samsara status information.
+    Matches by LT/invoice numbers and updates status accordingly.
+    """
+    if not samsara_routes_map:
+        print("No Samsara data available for enhancement")
+        return mm_summaries
+    
+    enhanced_summaries = []
+    matched_count = 0
+    
+    for summary in mm_summaries:
+        # Try to match by invoice number (LT number)
+        lt_number = summary.get('invoice_number', '').strip()
+        
+        if lt_number and lt_number in samsara_routes_map:
+            # Found a match! Enhance with Samsara data
+            samsara_data = samsara_routes_map[lt_number]
+            
+            print(f"✅ Matched LT#{lt_number}: MM='{summary.get('producer_name')}' ↔ Samsara='{samsara_data['dairy_name']}' (Status: {samsara_data['samsara_status']})")
+            
+            # Create enhanced summary with Samsara real-time data
+            enhanced_summary = summary.copy()
+            
+            # Override status with Samsara real-time status
+            enhanced_summary['samsara_enhanced'] = True
+            enhanced_summary['samsara_status'] = samsara_data['samsara_status']
+            enhanced_summary['samsara_route_id'] = samsara_data['samsara_route_id']
+            enhanced_summary['samsara_dairy_name'] = samsara_data['dairy_name']
+            enhanced_summary['route_start_time'] = samsara_data['route_start_time']
+            enhanced_summary['dairy_arrival_time'] = samsara_data['dairy_arrival_time']
+            enhanced_summary['dairy_departure_time'] = samsara_data['dairy_departure_time']
+            
+            # Use Samsara driver name if available and different
+            if samsara_data['driver_name'] != 'Unknown' and samsara_data['driver_name'] != summary.get('driver', ''):
+                enhanced_summary['driver'] = samsara_data['driver_name']
+            
+            enhanced_summaries.append(enhanced_summary)
+            matched_count += 1
+        else:
+            # No match found, keep original MM data
+            enhanced_summaries.append(summary)
+    
+    print(f"Enhanced {matched_count}/{len(mm_summaries)} routes with Samsara real-time data")
+    return enhanced_summaries
+
 def main():
     """Main function to fetch, process, and store daily routes data."""
-    print("--- Starting Route Data Ingestion ---")
+    print("--- Starting Enhanced Route Data Ingestion (MM + Samsara) ---")
     
     conn = get_db_connection()
     if not conn:
         return
         
     try:
-        # Step 1: Get combined data from both APIs (NEW APPROACH)
+        # Step 1: Fetch Samsara Routes data for real-time enhancement
+        print("\n🔄 Step 1: Fetching Samsara routes for real-time status...")
+        samsara_routes_map = get_samsara_routes_data(days_back=7)
+        
+        # Step 2: Get combined data from Milk Movement APIs
         try:
-            print("🔄 Using NEW combined approach (pickups + schedules)...")
+            print("\n🔄 Step 2: Using combined approach (MM pickups + schedules)...")
             combined_data = get_combined_routes_data(date.today().strftime("%Y-%m-%d"))
             if combined_data:
-                report = generate_routes_report(combined_data, get_all_samsara_locations())
-                print(f"✅ NEW approach successful: {len(report)} total routes")
+                print(f"✅ MM data successful: {len(combined_data)} routes")
             else:
-                print("⚠️ NEW approach returned no data, falling back to old method...")
+                print("⚠️ Combined approach returned no data, falling back to old method...")
                 raise Exception("No combined data")
                 
         except Exception as e:
-            print(f"❌ NEW approach failed: {e}")
-            print("🔄 Falling back to OLD approach (pickups only)...")
+            print(f"❌ Combined approach failed: {e}")
+            print("🔄 Falling back to MM pickups only...")
             
             # FALLBACK: Use original method
             summaries = get_load_summaries(date.today().strftime("%Y-%m-%d"))
             if summaries is None:
                 return
-            report = generate_routes_report(summaries, get_all_samsara_locations())
-            
+            combined_data = summaries
+        
+        # Step 3: Enhance MM data with Samsara real-time status
+        print(f"\n🔄 Step 3: Enhancing {len(combined_data)} MM routes with Samsara data...")
+        enhanced_data = enhance_mm_data_with_samsara(combined_data, samsara_routes_map)
+        
+        # Step 4: Generate routes report with enhanced data
+        print(f"\n🔄 Step 4: Generating routes report...")
+        report = generate_routes_report(enhanced_data, get_all_samsara_locations())
+        
         if report.empty:
-            print("No routes returned from API.")
+            print("No routes returned from enhanced processing.")
             return
 
-        # Step 2: Get dairy mapping from DB
+        # Step 5: Get dairy mapping from DB
         dairy_id_map = get_dairy_id_map(conn)
         if not dairy_id_map:
             print("Error: Could not retrieve dairy mapping. Aborting.")
             return
 
-        # Step 3: Process data
+        # Step 6: Process data
         routes_data = process_routes_data(report, dairy_id_map)
         
-        # Step 4: Upsert data
-        print(f"Processed {len(routes_data)} route records to be upserted.")
+        # Step 7: Upsert data
+        print(f"\n🔄 Step 7: Upserting {len(routes_data)} enhanced route records...")
         rows_affected = upsert_routes_data(conn, routes_data)
         
-        print(f"--- Route Data Ingestion Complete ---")
-        print(f"{rows_affected} records were inserted or updated in the database.")
+        print(f"\n--- Enhanced Route Data Ingestion Complete ---")
+        print(f"✅ {rows_affected} records were inserted or updated in the database.")
+        print(f"✅ Enhanced {len([r for r in enhanced_data if r.get('samsara_enhanced')])} routes with real-time Samsara data")
 
+    except Exception as e:
+        print(f"❌ Fatal error in main processing: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         if conn:
             conn.close()

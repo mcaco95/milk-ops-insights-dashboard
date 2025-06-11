@@ -58,17 +58,17 @@ INSERT INTO dairies (id, name, active, milk_movement_names, samsara_location_nam
 ('d_i_holsteins', 'D & I Holsteins', true, 
     '{"D&I Holsteins (716)"}', 
     '{"D & I Holsteins (716)"}',
-    '{"D&I Coolidge (805)"}'
+    '{"D&I Stanfield (716)", "D & I Holsteins"}'
 ),
 ('az_dairy', 'AZ Dairy', true, 
     '{"Arizona Dairy"}', 
     '{"AZ Dairy (395)"}',
-    '{"Arizona Dairy"}'
+    '{"Arizona Dairy", "AZ Dairy"}'
 ),
 ('d_i_dairy', 'D&I Dairy', true, 
     '{"D&I Dairy (805)"}', 
     '{"D&I Dairy (805)"}',
-    '{"D&I Stanfield (716)"}'
+    '{"D&I Coolidge (805)", "D&I Dairy"}'
 )
 ON CONFLICT (id) DO UPDATE SET
     milk_movement_names = EXCLUDED.milk_movement_names,

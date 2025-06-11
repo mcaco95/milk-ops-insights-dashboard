@@ -97,15 +97,29 @@ def get_routes_data(db: Session, dairy_id: str, target_date: Optional[date] = No
     
     query = text("""
         SELECT 
+            id,
+            dairy_id,
             samsara_route_id,
+            samsara_route_name,
+            report_date,
             driver_name,
             truck_id,
             status,
+            
+            -- ENHANCED: Separate timestamp fields
+            depot_departure_time,
+            dairy_arrival_time,
+            dairy_departure_time,
+            estimated_eta,
+            
+            -- Legacy fields (for backwards compatibility)
             estimated_arrival,
             start_date,
+            
             route,
             dairy_name,
             tank,
+            samsara_tank,
             processor,
             lt_number,
             fairlife_number,

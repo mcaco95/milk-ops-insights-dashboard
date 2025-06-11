@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date
 
 # Auth schemas
 class LoginRequest(BaseModel):
@@ -67,20 +67,34 @@ class CurrentLocation(BaseModel):
     lng: float
 
 class RouteData(BaseModel):
-    id: int
-    route_number: str
+    id: str
+    dairy_id: str
+    samsara_route_id: Optional[str] = None
+    samsara_route_name: Optional[str] = None  # Full route name for reference
+    report_date: date
     driver_name: Optional[str] = None
     truck_id: Optional[str] = None
-    status: str
-    estimated_arrival: str
-    start_date: Optional[str] = None
+    status: Optional[str] = None
+    
+    # ENHANCED: Separate timestamp fields for different stages
+    depot_departure_time: Optional[datetime] = None  # When truck left depot
+    dairy_arrival_time: Optional[datetime] = None    # When truck arrived at dairy
+    dairy_departure_time: Optional[datetime] = None  # When truck left dairy
+    estimated_eta: Optional[datetime] = None         # Calculated ETA based on status
+    
+    # Legacy fields (for backwards compatibility)
+    estimated_arrival: Optional[datetime] = None
+    start_date: Optional[datetime] = None
+    
     route: Optional[str] = None
     dairy_name: Optional[str] = None
     tank: Optional[str] = None
+    samsara_tank: Optional[str] = None  # Tank info from Samsara route names
     processor: Optional[str] = None
     lt_number: Optional[str] = None
     fairlife_number: Optional[str] = None
     tracking_link: Optional[str] = None
+    last_updated: Optional[datetime] = None
 
     class Config:
         from_attributes = True
