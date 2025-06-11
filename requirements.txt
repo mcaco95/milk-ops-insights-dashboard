@@ -8,5 +8,5 @@ passlib[bcrypt]
 python-multipart
 redis
 schedule
-psycopg2-binary
+psycopg2-binary 
 pytz 

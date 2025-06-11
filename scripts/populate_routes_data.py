@@ -19,6 +19,7 @@ import re
 # API Credentials
 MILK_MOOVEMENT_API_TOKEN = "amlvr8mXyI14JPu9g4kY69I10gTvc5iW4f5MNWcM"
 SAMSARA_API_TOKEN = "samsara_api_cs6PujA8wahppSXzmUYzAGYmgPqTqE"
+TOMTOM_API_KEY = "s4SRO0ZMWIrxsaAsUrIRLN4R5MZHabTt"
 API_BASE_URL = "https://api.prod.milkmoovement.io/v1"
 
 # Database configuration (Docker environment)
@@ -63,10 +64,11 @@ ROUTE_DAIRY_MAPPING = {
     **{i: "T&K" for i in range(122, 186)},
     # Routes 330-339: Arizona Dairy
     **{i: "Arizona Dairy" for i in range(330, 340)},
-    # Additional routes found in logs - extending Arizona range
-    340: "Arizona Dairy",
-    341: "Arizona Dairy", 
-    342: "Arizona Dairy",
+    # Routes 340-343: Piazzo Dairy
+    340: "Piazzo Dairy (800)",
+    341: "Piazzo Dairy (800)", 
+    342: "Piazzo Dairy (800)",
+    343: "Piazzo Dairy (800)",
 }
 
 # Reverse mapping to get route number from dairy name
@@ -364,6 +366,8 @@ def get_samsara_routes():
             'actual_start': actual_start_mst,
             'actual_end': actual_end_mst,
             'driver': route.get('driver', {}).get('name', 'TBD'),
+            'vehicle_id': route.get('vehicle', {}).get('id', ''),
+            'vehicle_name': route.get('vehicle', {}).get('name', 'TBD'),
             'depot_state': depot_stop.get('state', '') if depot_stop else '',
             'dairy_state': dairy_stop.get('state', '') if dairy_stop else '',
             'dairy_arrival': dairy_arrival_mst,
@@ -430,6 +434,10 @@ def populate_routes_data(target_date=None):
         # Get dairy mappings
         dairy_mappings = get_dairy_mapping(conn)
         
+        # Load locations for TomTom ETA calculations
+        locations = get_locations_from_db(conn)
+        depot_coords = locations.get('depot')
+        
         # Get data from both APIs
         mm_routes = get_mm_routes_today()
         samsara_routes = get_samsara_routes()
@@ -478,9 +486,11 @@ def populate_routes_data(target_date=None):
                 if samsara_match['depot_departure']:
                     try:
                         departure_str = samsara_match['depot_departure'].replace(' MST', '')
-                        today_mst = datetime.now(timezone.utc).astimezone(mst).replace(hour=0, minute=0, second=0, microsecond=0)
-                        departure_mst = today_mst.replace(hour=int(departure_str.split(':')[0]), minute=int(departure_str.split(':')[1]))
-                        depot_departure_utc = departure_mst.astimezone(timezone.utc)
+                        # FIXED: Parse time properly with MST timezone
+                        hour, minute = map(int, departure_str.split(':'))
+                        # Create MST datetime for today
+                        mst_today = datetime.now(mst).replace(hour=hour, minute=minute, second=0, microsecond=0)
+                        depot_departure_utc = mst_today.astimezone(timezone.utc)
                     except Exception as e:
                         print(f"⚠️  Error parsing depot departure for {lt_number}: {e}")
                 
@@ -488,9 +498,11 @@ def populate_routes_data(target_date=None):
                 if samsara_match['dairy_arrival']:
                     try:
                         arrival_str = samsara_match['dairy_arrival'].replace(' MST', '')
-                        today_mst = datetime.now(timezone.utc).astimezone(mst).replace(hour=0, minute=0, second=0, microsecond=0)
-                        arrival_mst = today_mst.replace(hour=int(arrival_str.split(':')[0]), minute=int(arrival_str.split(':')[1]))
-                        dairy_arrival_utc = arrival_mst.astimezone(timezone.utc)
+                        # FIXED: Parse time properly with MST timezone
+                        hour, minute = map(int, arrival_str.split(':'))
+                        # Create MST datetime for today
+                        mst_today = datetime.now(mst).replace(hour=hour, minute=minute, second=0, microsecond=0)
+                        dairy_arrival_utc = mst_today.astimezone(timezone.utc)
                     except Exception as e:
                         print(f"⚠️  Error parsing dairy arrival for {lt_number}: {e}")
                 
@@ -498,9 +510,11 @@ def populate_routes_data(target_date=None):
                 if samsara_match['dairy_departure']:
                     try:
                         departure_str = samsara_match['dairy_departure'].replace(' MST', '')
-                        today_mst = datetime.now(timezone.utc).astimezone(mst).replace(hour=0, minute=0, second=0, microsecond=0)
-                        departure_mst = today_mst.replace(hour=int(departure_str.split(':')[0]), minute=int(departure_str.split(':')[1]))
-                        dairy_departure_utc = departure_mst.astimezone(timezone.utc)
+                        # FIXED: Parse time properly with MST timezone
+                        hour, minute = map(int, departure_str.split(':'))
+                        # Create MST datetime for today
+                        mst_today = datetime.now(mst).replace(hour=hour, minute=minute, second=0, microsecond=0)
+                        dairy_departure_utc = mst_today.astimezone(timezone.utc)
                     except Exception as e:
                         print(f"⚠️  Error parsing dairy departure for {lt_number}: {e}")
                 
@@ -515,11 +529,72 @@ def populate_routes_data(target_date=None):
                 dairy_arrival_utc = None
                 dairy_departure_utc = None
             
-            # ENHANCED: Calculate ETA based on new timestamp-based status
+            # ENHANCED: Calculate ETA using TomTom API for real traffic-aware ETAs
             estimated_eta_utc = None
-            if final_status == 'en_route' and depot_departure_utc:
-                # EN_ROUTE: ETA = depot departure + estimated travel time
-                estimated_eta_utc = depot_departure_utc + timedelta(hours=2)
+            if final_status == 'en_route' and depot_departure_utc and depot_coords:
+                # Find dairy coordinates
+                dairy_coords = find_dairy_coordinates(mm_route['dairy'], locations)
+                
+                if dairy_coords:
+                    # ENHANCED: Get truck's current location for accurate ETA
+                    truck_number = mm_route.get('truck', 'TBD')
+                    vehicle_id = None
+                    vehicle_name = None
+                    
+                    # Use Samsara vehicle info if available (more reliable)
+                    if samsara_match:
+                        vehicle_id = samsara_match.get('vehicle_id', '')
+                        vehicle_name = samsara_match.get('vehicle_name', 'TBD')
+                        if vehicle_name != 'TBD':
+                            truck_number = vehicle_name
+                        print(f"   🚛 Using Samsara vehicle: ID={vehicle_id}, Name={vehicle_name}")
+                    else:
+                        print(f"   🚛 Using MM truck number: {truck_number}")
+                    
+                    # Try to get truck location (try vehicle_id first, then truck_number)
+                    truck_location = None
+                    if vehicle_id:
+                        truck_location = get_vehicle_location_by_id(vehicle_id)
+                    
+                    if not truck_location and truck_number != 'TBD':
+                        truck_location = get_vehicle_location(truck_number)
+                    
+                    if truck_location:
+                        # Use truck's current location → dairy for most accurate ETA
+                        print(f"   🗺️  Calculating TomTom ETA for {lt_number} from truck {truck_number} current location to {mm_route['dairy']}")
+                        eta_minutes = get_live_eta(truck_location, dairy_coords)
+                        
+                        if eta_minutes:
+                            # ETA = current time + TomTom travel time from current location
+                            current_time_utc = datetime.now(timezone.utc)
+                            estimated_eta_utc = current_time_utc + timedelta(minutes=eta_minutes)
+                            print(f"   ✅ TomTom ETA from current location: {eta_minutes:.0f} minutes")
+                        else:
+                            # Fallback: depot → dairy if truck location fails
+                            print(f"   ⚠️  TomTom failed from truck location, trying depot → dairy")
+                            eta_minutes = get_live_eta(depot_coords, dairy_coords)
+                            if eta_minutes:
+                                estimated_eta_utc = depot_departure_utc + timedelta(minutes=eta_minutes)
+                                print(f"   ✅ TomTom ETA from depot: {eta_minutes:.0f} minutes")
+                            else:
+                                estimated_eta_utc = depot_departure_utc + timedelta(hours=1)
+                                print(f"   ⚠️  All TomTom calls failed, using 1-hour fallback")
+                    else:
+                        # Fallback: depot → dairy if no truck location
+                        print(f"   🗺️  No truck location, calculating depot → dairy for {lt_number}")
+                        eta_minutes = get_live_eta(depot_coords, dairy_coords)
+                        
+                        if eta_minutes:
+                            estimated_eta_utc = depot_departure_utc + timedelta(minutes=eta_minutes)
+                            print(f"   ✅ TomTom ETA from depot: {eta_minutes:.0f} minutes")
+                        else:
+                            estimated_eta_utc = depot_departure_utc + timedelta(hours=1)
+                            print(f"   ⚠️  TomTom failed, using 1-hour fallback")
+                else:
+                    # Fallback if no dairy coordinates found
+                    estimated_eta_utc = depot_departure_utc + timedelta(hours=1)
+                    print(f"   ⚠️  No coordinates for {mm_route['dairy']}, using 1-hour fallback")
+                    
             elif final_status == 'filling_tank' and dairy_arrival_utc:
                 # FILLING_TANK: ETA shows when they arrived (for "Arrived at X" display)
                 estimated_eta_utc = dairy_arrival_utc
@@ -620,6 +695,164 @@ def populate_routes_data(target_date=None):
     finally:
         if 'conn' in locals():
             conn.close()
+
+def get_live_eta(origin_coords, dest_coords):
+    """
+    Gets a traffic-aware ETA from the TomTom API.
+    Returns the ETA in minutes.
+    """
+    if not origin_coords or not dest_coords:
+        return None
+    
+    origin_str = f"{origin_coords['lat']},{origin_coords['lon']}"
+    dest_str = f"{dest_coords['lat']},{dest_coords['lon']}"
+    
+    url = f"https://api.tomtom.com/routing/1/calculateRoute/{origin_str}:{dest_str}/json"
+    params = {"key": TOMTOM_API_KEY, "traffic": "true"}
+    
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        travel_time_seconds = data['routes'][0]['summary']['travelTimeInSeconds']
+        return travel_time_seconds / 60
+    except (requests.exceptions.RequestException, IndexError, KeyError):
+        return None
+
+def get_locations_from_db(conn):
+    """Get dairy and depot coordinates from database for TomTom ETA calculations"""
+    locations = {}
+    try:
+        with conn.cursor() as cur:
+            # Get depot location (hardcoded for now - you can add to database later)
+            locations['depot'] = {"lat": 33.4484, "lon": -112.0740}  # Phoenix depot coordinates
+            
+            # Get dairy locations from samsara_addresses table
+            cur.execute("SELECT name, latitude, longitude FROM samsara_addresses WHERE latitude IS NOT NULL AND longitude IS NOT NULL")
+            addresses = cur.fetchall()
+            
+            for name, lat, lon in addresses:
+                if name and name.strip():
+                    locations[name.lower()] = {"lat": float(lat), "lon": float(lon)}
+            
+            print(f"   📍 Loaded {len(locations)} locations for TomTom ETA calculations")
+            
+    except Exception as e:
+        print(f"   ⚠️  Error loading locations: {e}")
+        # Fallback locations for key dairies
+        locations = {
+            'depot': {"lat": 33.4484, "lon": -112.0740},
+            't&k': {"lat": 33.2855, "lon": -112.1234},  # Example coordinates
+            'milky way dairy': {"lat": 33.3456, "lon": -112.2345}  # Example coordinates
+        }
+    
+    return locations
+
+def find_dairy_coordinates(dairy_name, locations):
+    """Find coordinates for a dairy by matching name variations"""
+    if not dairy_name:
+        return None
+    
+    dairy_lower = dairy_name.lower()
+    
+    # Direct match
+    if dairy_lower in locations:
+        return locations[dairy_lower]
+    
+    # Partial matches for common patterns
+    for location_name, coords in locations.items():
+        if any(keyword in location_name for keyword in ['t&k', 'milky', 'triple', 'dickman', 'belmont', 'piazzo']):
+            if any(keyword in dairy_lower for keyword in ['t&k', 'milky', 'triple', 'dickman', 'belmont', 'piazzo']):
+                return coords
+    
+    return None
+
+def get_vehicle_location_by_id(vehicle_id):
+    """Get current GPS location of a truck using Samsara vehicle ID (more direct)"""
+    if not vehicle_id:
+        return None
+    
+    try:
+        headers = {"Authorization": f"Bearer {SAMSARA_API_TOKEN}", "Accept": "application/json"}
+        
+        # Direct vehicle stats call using vehicle ID
+        stats_url = "https://api.samsara.com/fleet/vehicles/stats"
+        params = {"vehicleIds": [vehicle_id], "types": "gps"}
+        
+        stats_response = requests.get(stats_url, headers=headers, params=params)
+        stats_response.raise_for_status()
+        
+        stats_data = stats_response.json().get('data', [])
+        if not stats_data:
+            print(f"   ⚠️  No stats data for vehicle ID {vehicle_id}")
+            return None
+        
+        data = stats_data[0]
+        if 'gps' in data and 'latitude' in data['gps']:
+            location = {"lat": data['gps']['latitude'], "lon": data['gps']['longitude']}
+            print(f"   📍 Found vehicle {vehicle_id} at: {location['lat']:.4f}, {location['lon']:.4f}")
+            return location
+        else:
+            print(f"   ⚠️  No GPS data for vehicle ID {vehicle_id}")
+            return None
+        
+    except Exception as e:
+        print(f"   ⚠️  Error getting vehicle location by ID {vehicle_id}: {e}")
+        return None
+
+def get_vehicle_location(truck_number):
+    """Get current GPS location of a truck from Samsara API"""
+    if not truck_number or truck_number == 'TBD':
+        return None
+    
+    try:
+        # Get all vehicles first
+        vehicles_url = "https://api.samsara.com/fleet/vehicles"
+        headers = {"Authorization": f"Bearer {SAMSARA_API_TOKEN}", "Accept": "application/json"}
+        
+        response = requests.get(vehicles_url, headers=headers)
+        response.raise_for_status()
+        all_vehicles = response.json().get('data', [])
+        
+        # Try to find vehicle with various name formats
+        possible_names = [f"DMT {truck_number}", f"TRUCK {truck_number}", truck_number, f"Truck {truck_number}"]
+        vehicle_data = None
+        
+        for target_name in possible_names:
+            for vehicle in all_vehicles:
+                if vehicle.get('name') == target_name:
+                    vehicle_data = vehicle
+                    break
+            if vehicle_data:
+                break
+        
+        if not vehicle_data:
+            print(f"   ⚠️  Could not find truck '{truck_number}' in Samsara")
+            return None
+        
+        # Get vehicle location
+        vehicle_id = vehicle_data['id']
+        stats_url = "https://api.samsara.com/fleet/vehicles/stats"
+        params = {"vehicleIds": [vehicle_id], "types": "gps"}
+        
+        stats_response = requests.get(stats_url, headers=headers, params=params)
+        stats_response.raise_for_status()
+        
+        stats_data = stats_response.json().get('data', [])
+        if not stats_data:
+            return None
+        
+        data = stats_data[0]
+        if 'gps' in data and 'latitude' in data['gps']:
+            location = {"lat": data['gps']['latitude'], "lon": data['gps']['longitude']}
+            print(f"   📍 Found truck {truck_number} at: {location['lat']:.4f}, {location['lon']:.4f}")
+            return location
+        
+        return None
+        
+    except Exception as e:
+        print(f"   ⚠️  Error getting truck location for {truck_number}: {e}")
+        return None
 
 if __name__ == "__main__":
     populate_routes_data() 
