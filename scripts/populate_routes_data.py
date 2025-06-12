@@ -388,9 +388,19 @@ def get_dairy_mapping(conn):
         for row in cur.fetchall():
             dairy_id, names = row
             if names:
-                for name in names:
-                    # Use EXACT names from database - no normalization needed!
-                    mapping[name] = dairy_id
+                # Handle case where psycopg2 returns array as a string like '{"Name 1","Name 2"}'
+                if isinstance(names, str):
+                    # Remove curly braces, split by comma, and strip quotes/whitespace
+                    parsed_names = [n.strip().strip('"') for n in names.strip('{}').split(',')]
+                elif isinstance(names, list):
+                    # If it's already a list, use it directly
+                    parsed_names = names
+                else:
+                    parsed_names = []
+
+                for name in parsed_names:
+                    if name: # Ensure name is not an empty string
+                        mapping[name] = dairy_id
     return mapping
 
 def normalize_dairy_name(dairy_name):

@@ -32,8 +32,19 @@ def get_dairy_mapping(conn):
         for row in cur.fetchall():
             dairy_id, names = row
             if names:
-                for name in names:
-                    mapping[name] = dairy_id
+                # Handle case where psycopg2 returns array as a string like '{"Name 1","Name 2"}'
+                if isinstance(names, str):
+                    # Remove curly braces, split by comma, and strip quotes/whitespace
+                    parsed_names = [n.strip().strip('"') for n in names.strip('{}').split(',')]
+                elif isinstance(names, list):
+                    # If it's already a list, use it directly
+                    parsed_names = names
+                else:
+                    parsed_names = []
+
+                for name in parsed_names:
+                    if name: # Ensure name is not an empty string
+                        mapping[name] = dairy_id
     return mapping
 
 def get_db_connection():
@@ -69,9 +80,22 @@ def populate_tanks_data():
             with conn.cursor() as cur:
                 insert_count = 0
                 
+                # TEMPORARY HARDCODED MAPPING FOR DEBUGGING
+                hardcoded_map = {
+                    "Arizona Dairy": "az_dairy",
+                    "D&I Coolidge (805)": "d_i_dairy",
+                    "D&I Stanfield (716)": "d_i_holsteins"
+                }
+                
                 for dairy_name_from_script, tanks in tank_statuses.items():
                     # Map dairy name to database ID
-                    dairy_id = dairy_name_mapping.get(dairy_name_from_script)
+                    dairy_id = None
+                    if dairy_name_from_script in hardcoded_map:
+                        dairy_id = hardcoded_map[dairy_name_from_script]
+                        print(f"INFO: Using hardcoded map for '{dairy_name_from_script}' -> '{dairy_id}'")
+                    else:
+                        dairy_id = dairy_name_mapping.get(dairy_name_from_script)
+
                     if not dairy_id:
                         print(f"Warning: No mapping found for dairy '{dairy_name_from_script}' from script.")
                         continue

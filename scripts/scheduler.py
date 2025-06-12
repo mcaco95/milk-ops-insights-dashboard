@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 # Script paths
 SCRIPT_DIR = Path(__file__).parent
-TANK_SCRIPT = SCRIPT_DIR / "populate_tanks_data.py"
+TANK_SCRIPT = SCRIPT_DIR / "run_tank_update_sequence.py"
 ROUTES_SCRIPT = SCRIPT_DIR / "populate_routes_data.py"  # THIS NOW USES THE NEW WORKING LOGIC!
 VOLUMES_SCRIPT = SCRIPT_DIR / "populate_volumes_data.py"
 
@@ -58,7 +58,7 @@ def run_script(script_path, args=None):
         logger.error(f"Exception running {script_path.name}: {str(e)}")
 
 def populate_tank_data():
-    """Populate tank data - runs every 10 minutes"""
+    """Populate tank data - runs every 10 minutes (now includes fix for troubled dairies)"""
     logger.info("Starting tank data population...")
     run_script(TANK_SCRIPT)
 
