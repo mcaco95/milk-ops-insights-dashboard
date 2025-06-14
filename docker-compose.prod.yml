@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password_here}
+      POSTGRES_DB: dairy_operations
+      TZ: America/Denver
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/00_init_core_tables.sql:/docker-entrypoint-initdb.d/00_init_core_tables.sql
+      - ./database/01_init_data_tables.sql:/docker-entrypoint-initdb.d/01_init_data_tables.sql
+      - ./database/02_seed_data.sql:/docker-entrypoint-initdb.d/02_seed_data.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend
+    restart: always
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dairy_operations
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password_here}
+      SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-change-in-production}
+      TZ: America/Denver
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ./scripts:/app/scripts
+      - .:/app/project_root
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-network
+
+  scheduler:
+    build: 
+      context: .
+      dockerfile: Dockerfile.scheduler
+    restart: always
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dairy_operations
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password_here}
+      TZ: America/Denver
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/app/scripts
+      - .:/app/project_root
+      - scheduler_logs:/var/log
+    command: python /app/scripts/scheduler.py
+    networks:
+      - app-network
+
+  frontend:
+    build: 
+      context: ./milk-ops-insights-dashboard
+      dockerfile: Dockerfile.prod
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL=${API_URL:-http://your-server-ip:8000}
+      - TZ=America/Denver
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  scheduler_logs: 
